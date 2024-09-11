@@ -14,7 +14,7 @@ interface KPIChartProps {
   valueFormatter: (value: number) => string;
 }
 
-const KPIChart: React.FC<KPIChartProps> = ({ title, data, category, color, valueFormatter }) => {
+const KPIChart: React.FC<KPIChartProps> = React.memo(({ title, data, category, color, valueFormatter }) => {
   return (
     <Card>
       <Title>{title}</Title>
@@ -29,6 +29,8 @@ const KPIChart: React.FC<KPIChartProps> = ({ title, data, category, color, value
       />
     </Card>
   );
-};
+});
+
+KPIChart.displayName = 'KPIChart';
 
 export default KPIChart;
