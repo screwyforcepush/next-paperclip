@@ -1,9 +1,14 @@
 import React from 'react';
 import { Card, Title, LineChart } from '@tremor/react';
 
+interface KPIDataPoint {
+  cycle: number;
+  [key: string]: number;
+}
+
 interface KPIChartProps {
   title: string;
-  data: any[];
+  data: KPIDataPoint[];
   category: string;
   color: string;
   valueFormatter: (value: number) => string;

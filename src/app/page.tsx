@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import ChatPanel from '../components/game/ChatPanel';
+import Dashboard from '../components/dashboard/Dashboard';
 import { Message } from '../components/game/MessageBubble';
 
 // Temporary mock data for testing
@@ -36,12 +37,25 @@ export default function Home() {
     }, 1000);
   };
 
+  // Mock data for Dashboard (replace with real data later)
+  const mockKPIData = [
+    { cycle: 1, revenue: 100000, profitMargin: 10, cacClvRatio: 0.5, productionEfficiency: 0.8, marketShare: 5, innovationIndex: 3 },
+    // ... more data points ...
+  ];
+
   return (
-    <div className="flex h-full">
+    <div className="flex flex-col md:flex-row h-full">
       <div className="w-full md:w-1/2 h-full">
         <ChatPanel messages={messages} onSendMessage={handleSendMessage} />
       </div>
-      {/* Dashboard will be added here later */}
+      <div className="w-full md:w-1/2 h-full overflow-auto">
+        <Dashboard 
+          kpiData={mockKPIData}
+          companyName="Universal Paperclips Inc."
+          currentCycle={1}
+          sharePrice={[100, 102, 105, 103, 107]}
+        />
+      </div>
     </div>
   );
 }
