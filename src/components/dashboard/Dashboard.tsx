@@ -1,23 +1,16 @@
 import React from 'react';
 import CompanyOverview from './CompanyOverview';
 import KPIChart from './KPIChart';
-import { useGameState } from '../../context/GameContext';
+import { useGameState } from '@/contexts/GameStateContext';
 
 export interface KPIData {
   cycle: number;
   revenue: number;
   profitMargin: number;
   cacClvRatio: number;
-  productionEfficiency: number;
+  productionEfficiencyIndex: number;
   marketShare: number;
   innovationIndex: number;
-}
-
-interface DashboardProps {
-  kpiData: KPIData[];
-  companyName: string;
-  currentCycle: number;
-  sharePrice: number[];
 }
 
 const Dashboard: React.FC = () => {
@@ -44,7 +37,7 @@ const Dashboard: React.FC = () => {
           data={kpiHistory}
           category="profitMargin"
           color="green"
-          valueFormatter={(value) => `${value.toFixed(2)}%`}
+          valueFormatter={(value) => `${(value * 100).toFixed(2)}%`}
         />
         <KPIChart
           title="CAC/CLV Ratio"
@@ -56,7 +49,7 @@ const Dashboard: React.FC = () => {
         <KPIChart
           title="Production Efficiency"
           data={kpiHistory}
-          category="productionEfficiency"
+          category="productionEfficiencyIndex"
           color="purple"
           valueFormatter={(value) => value.toFixed(2)}
         />
@@ -65,7 +58,7 @@ const Dashboard: React.FC = () => {
           data={kpiHistory}
           category="marketShare"
           color="red"
-          valueFormatter={(value) => `${value.toFixed(2)}%`}
+          valueFormatter={(value) => `${(value * 100).toFixed(2)}%`}
         />
         <KPIChart
           title="Innovation Index"

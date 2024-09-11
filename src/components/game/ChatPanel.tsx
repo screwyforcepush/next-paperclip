@@ -3,8 +3,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useGameState } from '@/contexts/GameStateContext';
 import MessageBubble from './MessageBubble';
+import BusinessCycleHeader from './BusinessCycleHeader';
 import { startNewGame, simulateBusinessCycle } from '@/lib/utils/api';
-import { Message } from '@/types/game';
+import { Message, GameState } from '@/types/game';
+import { loadGameState, saveGameState } from '@/lib/utils/localStorage';
 
 const ChatPanel: React.FC = () => {
   const { gameState, setGameState } = useGameState();
@@ -13,22 +15,35 @@ const ChatPanel: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    console.log('[ChatPanel] Component mounted, current gameState:', gameState);
     if (!gameState) {
-      handleNewGame();
+      const savedState = loadGameState();
+      if (savedState) {
+        console.log('[ChatPanel] Loaded game state from local storage:', savedState);
+        setGameState(savedState);
+      } else {
+        console.log('[ChatPanel] No saved state found, starting new game');
+        handleNewGame();
+      }
     }
-  }, [gameState]);
+  }, []);
 
   useEffect(() => {
+    console.log('[ChatPanel] Game state updated:', gameState);
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [gameState?.messages]);
+  }, [gameState]);
 
   const handleNewGame = async () => {
     setLoading(true);
     try {
+      console.log('[ChatPanel] Starting new game');
       const newGameState = await startNewGame();
+      console.log('[ChatPanel] New game state received:', newGameState);
       setGameState(newGameState);
+      saveGameState(newGameState);
+      console.log('[ChatPanel] New game state saved to local storage');
     } catch (error) {
-      console.error('Failed to start new game:', error);
+      console.error('[ChatPanel] Failed to start new game:', error);
     } finally {
       setLoading(false);
     }
@@ -38,40 +53,52 @@ const ChatPanel: React.FC = () => {
     e.preventDefault();
     if (!input.trim() || !gameState) return;
 
+    console.log('[ChatPanel] Submitting user input:', input);
     const userMessage: Message = { role: 'user', content: input.trim() };
-    setGameState(prevState => ({
-      ...prevState!,
-      messages: [...prevState!.messages, userMessage],
-    }));
+    const updatedGameState: GameState = {
+      ...gameState,
+      messages: [...gameState.messages, userMessage],
+    };
+    setGameState(updatedGameState);
     setInput('');
 
     try {
-      const newMessages = await simulateBusinessCycle(input);
-      setGameState(prevState => ({
-        ...prevState!,
-        messages: [...prevState!.messages, ...newMessages.slice(1)],
-      }));
+      console.log('[ChatPanel] Simulating business cycle');
+      const { gameState: newGameState } = await simulateBusinessCycle(input, updatedGameState);
+      console.log('[ChatPanel] Received updated game state after simulation:', newGameState);
+      setGameState(newGameState);
+      saveGameState(newGameState);
+      console.log('[ChatPanel] Updated game state saved to local storage');
     } catch (error) {
-      console.error('Error simulating business cycle:', error);
+      console.error('[ChatPanel] Error simulating business cycle:', error);
     }
   };
 
-  if (loading) {
-    return <div className="flex items-center justify-center h-full">
-      <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
-    </div>;
-  }
-
-  if (!gameState) {
-    return <div className="flex items-center justify-center h-full text-red-500">No game state available</div>;
-  }
+  console.log('[ChatPanel] Rendering. Current game state:', gameState);
 
   return (
-    <div className="chat-panel flex flex-col h-[calc(100vh-7rem)] bg-gray-900 text-white">
+    <div className="chat-panel flex flex-col h-full bg-gray-900 text-white">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {gameState?.messages.map((message, index) => (
-          <MessageBubble key={index} message={message} />
-        ))}
+        {loading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : !gameState || gameState.messages.length === 0 ? (
+          <div className="flex items-center justify-center h-full text-red-500">Loading game state...</div>
+        ) : (
+          gameState.messages.map((message, index) => {
+            console.log(`[ChatPanel] Rendering message ${index}:`, message);
+            return (
+              <React.Fragment key={index}>
+                {message.role === 'system' && message.content.startsWith('Business Cycle') ? (
+                  <BusinessCycleHeader cycleNumber={gameState.currentCycle} />
+                ) : (
+                  <MessageBubble message={message} />
+                )}
+              </React.Fragment>
+            );
+          })
+        )}
         <div ref={messagesEndRef} />
       </div>
       <form onSubmit={handleSubmit} className="p-4 bg-gray-800 border-t border-gray-700">

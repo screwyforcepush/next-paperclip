@@ -4,8 +4,11 @@ export async function generateScenario(gameState?: GameState): Promise<string> {
   console.log("[generateScenario] Generating new scenario");
   
   let currentKPIs: KPI;
+  let currentCycle: number;
+
   if (gameState && gameState.kpiHistory && gameState.kpiHistory.length > 0) {
     currentKPIs = gameState.kpiHistory[gameState.kpiHistory.length - 1];
+    currentCycle = gameState.currentCycle;
   } else {
     // Default KPIs for a new game
     currentKPIs = {
@@ -16,21 +19,23 @@ export async function generateScenario(gameState?: GameState): Promise<string> {
       marketShare: 0.05,
       innovationIndex: 0.6
     };
+    currentCycle = 1;
   }
 
   console.log("[generateScenario] Current KPIs:", currentKPIs);
 
   // Generate a scenario based on the current KPIs
-  const scenario = `
-Business Cycle ${gameState ? gameState.currentCycle + 1 : 1}
+  const scenario = `Welcome to Universal Paperclips! Let's start your journey as a business consultant.
+
+Business Cycle ${currentCycle}
 
 Current KPIs:
-Revenue: ${currentKPIs.revenue}
-Profit Margin: ${currentKPIs.profitMargin}
-CAC/CLV Ratio: ${currentKPIs.cacClvRatio}
-Production Efficiency Index: ${currentKPIs.productionEfficiencyIndex}
-Market Share: ${currentKPIs.marketShare}
-Innovation Index: ${currentKPIs.innovationIndex}
+Revenue: $${currentKPIs.revenue.toLocaleString()}
+Profit Margin: ${(currentKPIs.profitMargin * 100).toFixed(1)}%
+CAC/CLV Ratio: ${currentKPIs.cacClvRatio.toFixed(2)}
+Production Efficiency Index: ${currentKPIs.productionEfficiencyIndex.toFixed(2)}
+Market Share: ${(currentKPIs.marketShare * 100).toFixed(1)}%
+Innovation Index: ${currentKPIs.innovationIndex.toFixed(2)}
 
 ${generateChallenge(currentKPIs)}
 `;
