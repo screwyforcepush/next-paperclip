@@ -2,75 +2,47 @@
 
 import React, { useState, useEffect } from 'react';
 import { simulateBusinessCycle } from '@/lib/utils/api';
-import MessageBubble from './MessageBubble';
-import { Message } from '@/types/game';
-import { useGameState } from '@/context/GameContext';
+import { BaseMessage } from '@langchain/core/messages';
 
 export default function ChatPanel() {
-  const { state, dispatch } = useGameState();
-  const [userInput, setUserInput] = useState('');
+  const [messages, setMessages] = useState<BaseMessage[]>([]);
+  const [input, setInput] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userInput.trim()) return;
+    if (!input.trim()) return;
 
-    // Add user message
-    const userMessage: Message = {
-      id: `user-${Date.now()}`,
-      sender: 'User',
-      content: userInput,
-      type: 'user'
-    };
-    dispatch({ type: 'ADD_MESSAGE', payload: userMessage });
+    const userMessage = { role: 'user', content: input };
+    setMessages(prevMessages => [...prevMessages, userMessage]);
+    setInput('');
 
     try {
-      const simulationResult = await simulateBusinessCycle(userInput);
-      
-      // Add simulation messages
-      simulationResult.messages.forEach((msg) => {
-        const newMessage: Message = {
-          id: `${msg.name}-${Date.now()}`,
-          sender: msg.name || 'System',
-          content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content),
-          type: (msg.name?.toLowerCase() as Message['type']) || 'system'
-        };
-        dispatch({ type: 'ADD_MESSAGE', payload: newMessage });
-      });
-
-      // Update game state
-      dispatch({ type: 'SET_CURRENT_CYCLE', payload: simulationResult.gameState.currentCycle });
-      dispatch({ type: 'SET_CURRENT_SITUATION', payload: simulationResult.gameState.currentSituation });
-      // Add other state updates as needed
-
-      setUserInput('');
+      const newMessages = await simulateBusinessCycle(input);
+      setMessages(prevMessages => [...prevMessages, ...newMessages.slice(1)]);
     } catch (error) {
-      console.error('Error during simulation:', error);
-      // Handle error (e.g., show an error message to the user)
+      console.error('Error simulating business cycle:', error);
     }
   };
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-grow overflow-y-auto p-4 space-y-4">
-        {state.messages.length > 0 ? (
-          state.messages.map((message) => (
-            <MessageBubble key={message.id} message={message} />
-          ))
-        ) : (
-          <p className="text-gray-500">No messages yet. Start the game to begin.</p>
-        )}
+      <div className="flex-1 overflow-y-auto p-4">
+        {messages.map((message, index) => (
+          <div key={`${message.role}-${index}`} className={`mb-4 ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
+            <div className={`inline-block p-2 rounded-lg ${message.role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}>
+              {message.content}
+            </div>
+          </div>
+        ))}
       </div>
       <form onSubmit={handleSubmit} className="p-4 border-t">
         <input
           type="text"
-          value={userInput}
-          onChange={(e) => setUserInput(e.target.value)}
-          placeholder="Enter your advice..."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
           className="w-full p-2 border rounded"
+          placeholder="Type your message..."
         />
-        <button type="submit" className="mt-2 px-4 py-2 bg-blue-500 text-white rounded">
-          Send Advice
-        </button>
       </form>
     </div>
   );
