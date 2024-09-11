@@ -1,185 +1,77 @@
 'use client';
 
-import React, { useRef, useEffect, useState } from 'react';
-import MessageBubble, { Message } from './MessageBubble';
-import BusinessCycleHeader from './BusinessCycleHeader';
-import SimulationAccordion from './SimulationAccordion';
+import React, { useState, useEffect } from 'react';
+import { simulateBusinessCycle } from '@/lib/utils/api';
+import MessageBubble from './MessageBubble';
+import { Message } from '@/types/game';
+import { useGameState } from '@/context/GameContext';
 
-interface ChatPanelProps {
-  initialMessages: Message[];
-  onSendMessage: (content: string) => void;
-}
+export default function ChatPanel() {
+  const { state, dispatch } = useGameState();
+  const [userInput, setUserInput] = useState('');
 
-const ChatPanel: React.FC<ChatPanelProps> = ({ initialMessages, onSendMessage }) => {
-  const [inputValue, setInputValue] = useState('');
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
-  const [businessCycle, setBusinessCycle] = useState(1);
-  const chatEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputValue.trim()) {
-      onSendMessage(inputValue);
+    if (!userInput.trim()) return;
+
+    // Add user message
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
+      sender: 'User',
+      content: userInput,
+      type: 'user'
+    };
+    dispatch({ type: 'ADD_MESSAGE', payload: userMessage });
+
+    try {
+      const simulationResult = await simulateBusinessCycle(userInput);
       
-      const newMessages: Message[] = [
-        {
-          id: Date.now().toString(),
-          sender: 'User',
-          content: inputValue,
-          type: 'user',
-        },
-        {
-          id: (Date.now() + 1).toString(),
-          sender: 'System',
-          content: 'Simulating business outcomes...',
-          type: 'system',
-        },
-        {
-          id: (Date.now() + 2).toString(),
-          sender: 'CEO',
-          content: `Interesting suggestion about ${inputValue}. Let's discuss this with the team.`,
-          type: 'ceo',
-        },
-        // Simulate C-suite responses
-        {
-          id: (Date.now() + 3).toString(),
-          sender: 'CTO',
-          content: `From a technology perspective, ${inputValue} could be implemented by...`,
-          type: 'cto',
-        },
-        {
-          id: (Date.now() + 4).toString(),
-          sender: 'CFO',
-          content: `Financially, ${inputValue} would impact our budget in the following ways...`,
-          type: 'cfo',
-        },
-        {
-          id: (Date.now() + 5).toString(),
-          sender: 'CMO',
-          content: `In terms of marketing, ${inputValue} could affect our brand by...`,
-          type: 'cmo',
-        },
-        {
-          id: (Date.now() + 6).toString(),
-          sender: 'COO',
-          content: `Operationally, we can support ${inputValue} by adjusting our processes to...`,
-          type: 'coo',
-        },
-        {
-          id: (Date.now() + 7).toString(),
-          sender: 'CEO',
-          content: `Thank you all for your input. Based on our discussion, we'll proceed with ${inputValue}, taking into account the points raised.`,
-          type: 'ceo',
-        },
-        {
-          id: (Date.now() + 8).toString(),
-          sender: 'System',
-          content: `Business outcome simulated: The decision to ${inputValue} has been implemented...`,
-          type: 'system',
-        },
-        {
-          id: (Date.now() + 9).toString(),
-          sender: 'System',
-          content: `Business cycle ${businessCycle + 1} begins. New challenges arise...`,
-          type: 'system',
-        },
-        {
-          id: (Date.now() + 10).toString(),
-          sender: 'System',
-          content: `Inflection point: [New market condition or challenge]. What strategic move would you advise?`,
-          type: 'system',
-        },
-      ];
+      // Add simulation messages
+      simulationResult.messages.forEach((msg) => {
+        const newMessage: Message = {
+          id: `${msg.name}-${Date.now()}`,
+          sender: msg.name || 'System',
+          content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content),
+          type: (msg.name?.toLowerCase() as Message['type']) || 'system'
+        };
+        dispatch({ type: 'ADD_MESSAGE', payload: newMessage });
+      });
 
-      setMessages(prevMessages => [...prevMessages, ...newMessages]);
-      setInputValue('');
-      setBusinessCycle(prevCycle => prevCycle + 1);
-      inputRef.current?.focus();
+      // Update game state
+      dispatch({ type: 'SET_CURRENT_CYCLE', payload: simulationResult.gameState.currentCycle });
+      dispatch({ type: 'SET_CURRENT_SITUATION', payload: simulationResult.gameState.currentSituation });
+      // Add other state updates as needed
+
+      setUserInput('');
+    } catch (error) {
+      console.error('Error during simulation:', error);
+      // Handle error (e.g., show an error message to the user)
     }
-  };
-
-  const renderMessages = () => {
-    const renderedMessages: JSX.Element[] = [];
-    let simulationMessages: Message[] = [];
-    let currentCycle = 1;
-
-    messages.forEach((message) => {
-      if (message.type === 'system' && message.content.startsWith('Business cycle')) {
-        if (simulationMessages.length > 0) {
-          renderedMessages.push(
-            <SimulationAccordion
-              key={`simulation-${currentCycle}`}
-              messages={simulationMessages}
-              cycleNumber={currentCycle}
-            />
-          );
-          simulationMessages = [];
-        }
-        renderedMessages.push(<BusinessCycleHeader key={`cycle-${currentCycle}`} cycleNumber={currentCycle} />);
-        currentCycle++;
-      } else if (message.type === 'system' && message.content.startsWith('Business outcome simulated')) {
-        if (simulationMessages.length > 0) {
-          renderedMessages.push(
-            <SimulationAccordion
-              key={`simulation-${currentCycle}`}
-              messages={simulationMessages}
-              cycleNumber={currentCycle}
-            />
-          );
-          simulationMessages = [];
-        }
-        renderedMessages.push(<MessageBubble key={message.id} message={message} />);
-      } else if (['ceo', 'cto', 'cfo', 'cmo', 'coo'].includes(message.type)) {
-        simulationMessages.push(message);
-      } else {
-        renderedMessages.push(<MessageBubble key={message.id} message={message} />);
-      }
-    });
-
-    if (simulationMessages.length > 0) {
-      renderedMessages.push(
-        <SimulationAccordion
-          key={`simulation-${currentCycle}`}
-          messages={simulationMessages}
-          cycleNumber={currentCycle}
-        />
-      );
-    }
-
-    return renderedMessages;
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-50">
+    <div className="flex flex-col h-full">
       <div className="flex-grow overflow-y-auto p-4 space-y-4">
-        {renderMessages()}
-        <div ref={chatEndRef} />
+        {state.messages.length > 0 ? (
+          state.messages.map((message) => (
+            <MessageBubble key={message.id} message={message} />
+          ))
+        ) : (
+          <p className="text-gray-500">No messages yet. Start the game to begin.</p>
+        )}
       </div>
-      <form onSubmit={handleSubmit} className="p-4 bg-white border-t">
-        <div className="flex items-center">
-          <input
-            ref={inputRef}
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Type your advice here..."
-            className="flex-grow p-2 border rounded-l focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            type="submit"
-            className="bg-blue-500 text-white p-2 rounded-r hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Send
-          </button>
-        </div>
+      <form onSubmit={handleSubmit} className="p-4 border-t">
+        <input
+          type="text"
+          value={userInput}
+          onChange={(e) => setUserInput(e.target.value)}
+          placeholder="Enter your advice..."
+          className="w-full p-2 border rounded"
+        />
+        <button type="submit" className="mt-2 px-4 py-2 bg-blue-500 text-white rounded">
+          Send Advice
+        </button>
       </form>
     </div>
   );
-};
-
-export default ChatPanel;
+}

@@ -1,13 +1,7 @@
 'use client';
 
 import React from 'react';
-
-export interface Message {
-  id: string;
-  sender: string;
-  content: string;
-  type: 'system' | 'user' | 'ceo' | 'cto' | 'cfo' | 'cmo' | 'coo';
-}
+import { Message } from '@/types/game';
 
 interface MessageBubbleProps {
   message: Message;
@@ -36,7 +30,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
   };
 
   return (
-    <div className={`max-w-3/4 rounded-lg p-3 ${getBubbleStyle()}`}>
+    <div className={`max-w-3/4 rounded-lg p-3 mb-2 ${getBubbleStyle()} ${message.type === 'user' ? 'ml-auto' : 'mr-auto'}`}>
       {message.type !== 'user' && (
         <div className="font-bold mb-1">{message.sender}</div>
       )}

@@ -26,7 +26,7 @@ project-root/
 │   │   │   │   └── route.ts
 │   │   │   ├── simulate/
 │   │   │   │   └── route.ts
-│   │   │   └── saveGame/
+│   │   │   └── generateScenario/
 │   │   │       └── route.ts
 │   │   ├── fonts/
 │   │   ├── globals.css
