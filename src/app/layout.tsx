@@ -16,10 +16,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" className="h-full">
+      <body className={`${inter.className} flex flex-col h-full`}>
         <GameHeader />
-        {children}
+        <div className="flex-grow overflow-hidden">
+          {children}
+        </div>
       </body>
     </html>
   );

@@ -13,9 +13,9 @@ const GameHeader: React.FC = () => {
           Universal Paperclips - Business Advice Simulation
         </h1>
         {isOpen ? (
-          <ChevronUpIcon className="h-6 w-6" />
+          <ChevronUpIcon className="h-6 w-6 flex-shrink-0" />
         ) : (
-          <ChevronDownIcon className="h-6 w-6" />
+          <ChevronDownIcon className="h-6 w-6 flex-shrink-0" />
         )}
       </div>
       {isOpen && (
