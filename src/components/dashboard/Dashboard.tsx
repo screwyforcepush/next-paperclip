@@ -20,17 +20,17 @@ interface DashboardProps {
   sharePrice: number[];
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ kpiData, companyName, currentCycle, sharePrice }) => {
-  const { state } = useGameState();
-  const { kpiHistory, currentCycle: currentCycleState } = state;
+const Dashboard: React.FC = () => {
+  const { gameState } = useGameState();
+  const { kpiHistory, currentCycle } = gameState || { kpiHistory: [], currentCycle: 0 };
 
   return (
     <div className="h-full overflow-y-auto">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
         <CompanyOverview 
           companyName="PaperClip Inc."
-          currentCycle={currentCycleState}
-          sharePrice={kpiHistory.map(kpi => kpi.revenue / 1000)} // Simplified share price calculation
+          currentCycle={currentCycle}
+          sharePrice={kpiHistory.map(kpi => kpi.revenue / 1000)}
         />
         <KPIChart
           title="Revenue"

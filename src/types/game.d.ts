@@ -16,10 +16,19 @@ export interface Message {
   type: 'system' | 'user' | 'ceo' | 'cto' | 'cfo' | 'cmo' | 'coo';
 }
 
+export interface KPIs {
+  revenue: number;
+  profitMargin: number;
+  cacClvRatio: number;
+  productionEfficiencyIndex: number;
+  marketShare: number;
+  innovationIndex: number;
+}
+
 export interface GameState {
   currentCycle: number;
   currentSituation: string;
-  kpiHistory: KPIState[];
+  kpiHistory: KPIs[];
   messages: Message[];
 }
 

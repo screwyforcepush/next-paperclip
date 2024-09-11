@@ -8,10 +8,19 @@ interface MessageBubbleProps {
 }
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
+  const isUser = message.role === 'user';
+
   return (
-    <div className={`message-bubble ${message.sender === 'User' ? 'user' : 'agent'}`}>
-      <div className="message-sender">{message.sender}</div>
-      <div className="message-content">{message.content}</div>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+      <div
+        className={`max-w-3/4 p-3 rounded-lg ${
+          isUser
+            ? 'bg-blue-500 text-white'
+            : 'bg-gray-700 text-white'
+        }`}
+      >
+        <p className="text-sm">{message.content}</p>
+      </div>
     </div>
   );
 };

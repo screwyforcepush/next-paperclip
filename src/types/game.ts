@@ -22,10 +22,8 @@ export interface GameState {
 export type MessageContentComplex = string | { text: string };
 
 export interface Message {
-  id: string;
-  sender: string;
+  role: 'user' | 'assistant' | 'system';
   content: string;
-  type: 'system' | 'user' | 'ceo' | 'cto' | 'cfo' | 'cmo' | 'coo';
 }
 
 export interface KPI {

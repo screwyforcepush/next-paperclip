@@ -1,34 +1,10 @@
-import { ChatOpenAI } from "@langchain/openai";
-import { PromptTemplate } from "@langchain/core/prompts";
-import { StringOutputParser } from "@langchain/core/output_parsers";
-import { GameState } from '../../types/game';
-
-const model = new ChatOpenAI({
-  temperature: 0.7,
-  modelName: "gpt-3.5-turbo",
-});
-
-const scenarioPrompt = PromptTemplate.fromTemplate(`
-You are a business scenario generator for a paperclip manufacturing company simulation game. 
-Based on the current KPIs, generate a new business challenge or inflection point.
-
-Current KPIs:
-Revenue: {revenue}
-Profit Margin: {profitMargin}
-CAC/CLV Ratio: {cacClvRatio}
-Production Efficiency Index: {productionEfficiencyIndex}
-Market Share: {marketShare}
-Innovation Index: {innovationIndex}
-
-Generate a brief but impactful business scenario that challenges the company based on these KPIs. 
-The scenario should be 2-3 sentences long and end with a question for the CEO to consider.
-`);
+import { GameState, KPI } from '../../types/game';
 
 export async function generateScenario(gameState?: GameState): Promise<string> {
   console.log("[generateScenario] Generating new scenario");
   
-  let currentKPIs;
-  if (gameState && gameState.kpiHistory.length > 0) {
+  let currentKPIs: KPI;
+  if (gameState && gameState.kpiHistory && gameState.kpiHistory.length > 0) {
     currentKPIs = gameState.kpiHistory[gameState.kpiHistory.length - 1];
   } else {
     // Default KPIs for a new game
@@ -63,8 +39,16 @@ ${generateChallenge(currentKPIs)}
   return scenario;
 }
 
-function generateChallenge(_kpis: any): string {
+function generateChallenge(kpis: KPI): string {
   // This is a placeholder. In a real implementation, you would use the KPIs
   // to generate a relevant business challenge.
-  return "The company is facing increased competition in the market. How should we respond to maintain our market share and profitability?";
+  const challenge = "The company is facing increased competition in the market. ";
+  
+  if (kpis.marketShare < 0.1) {
+    return challenge + "How should we respond to increase our market share and maintain profitability?";
+  } else if (kpis.profitMargin < 0.15) {
+    return challenge + "What strategies can we implement to improve our profit margin while maintaining our market position?";
+  } else {
+    return challenge + "How can we leverage our strong position to further innovate and expand our market share?";
+  }
 }
