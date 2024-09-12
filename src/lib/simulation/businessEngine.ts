@@ -7,6 +7,23 @@ export class BusinessEngine {
   static async *runBusinessCycle(gameState: GameState, userInput: string): AsyncGenerator<Message, GameState> {
     console.log('[BusinessEngine] Running business cycle');
 
+
+    console.log('[BusinessEngine] Starting simulation');
+    const simulationGenerator = runSimulation(gameState.currentSituation, userInput);
+    const simulationMessages: Message[] = [];
+
+    for await (const message of simulationGenerator) {
+      console.log('[BusinessEngine] Received message from simulation:', JSON.stringify(message, null, 2));
+      simulationMessages.push(message as Message);
+      console.log('[BusinessEngine] Yielding message from simulation');
+      yield message as Message;
+    }
+
+    console.log('[BusinessEngine] Simulation complete, calculating new KPIs');
+    const currentKPIs = gameState.kpiHistory[gameState.kpiHistory.length - 1];
+    const newKPIs = calculateNewKPIs(currentKPIs, simulationMessages);
+    console.log('[BusinessEngine] Generated new KPIs:', newKPIs);
+
     const newCycle = gameState.currentCycle + 1;
     console.log(`[BusinessEngine] New cycle: ${newCycle}`);
 
@@ -27,21 +44,6 @@ export class BusinessEngine {
     console.log('[BusinessEngine] Yielding system message with new scenario');
     yield { role: 'system', content: newScenario };
 
-    console.log('[BusinessEngine] Starting simulation');
-    const simulationGenerator = runSimulation(newScenario, userInput);
-    const simulationMessages: Message[] = [];
-
-    for await (const message of simulationGenerator) {
-      console.log('[BusinessEngine] Received message from simulation:', JSON.stringify(message, null, 2));
-      simulationMessages.push(message as Message);
-      console.log('[BusinessEngine] Yielding message from simulation');
-      yield message as Message;
-    }
-
-    console.log('[BusinessEngine] Simulation complete, calculating new KPIs');
-    const currentKPIs = gameState.kpiHistory[gameState.kpiHistory.length - 1];
-    const newKPIs = calculateNewKPIs(currentKPIs, simulationMessages);
-    console.log('[BusinessEngine] Generated new KPIs:', newKPIs);
 
     const updatedGameState: GameState = {
       ...gameState,
