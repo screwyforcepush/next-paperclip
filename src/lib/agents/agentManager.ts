@@ -119,12 +119,12 @@ const cSuiteNode = async (state: typeof AgentState.State) => {
   };
 };
 
-export async function runSimulation(situation: string, userAdvice: string) {
+export async function* runSimulation(situation: string, userAdvice: string) {
   console.log("[runSimulation] Starting simulation");
   console.log("[runSimulation] Situation:", situation);
   console.log("[runSimulation] User advice:", userAdvice);
 
-  const workflow = new StateGraph(AgentState);
+  const workflow = new StateGraph<typeof AgentState.State, "CEO" | "C_SUITE">(AgentState);
 
   console.log("[runSimulation] Adding nodes to workflow");
   workflow.addNode("CEO", ceoNode);
@@ -156,15 +156,33 @@ export async function runSimulation(situation: string, userAdvice: string) {
 
   console.log("[runSimulation] Invoking graph");
   try {
-    const result = await graph.invoke({
+    const stream = await graph.stream({
       situation,
       userAdvice,
       messages: [],
       ceoDecision: null,
       completedAgents: [],
+    }, {
+      streamMode: "values",
     });
-    console.log("[runSimulation] Simulation complete. Result:", JSON.stringify(result, null, 2));
-    return result;
+
+    for await (const chunk of stream) {
+      console.log("[runSimulation] Received chunk:", JSON.stringify(chunk, null, 2));
+      if (chunk.messages && chunk.messages.length > 0) {
+        for (const message of chunk.messages) {
+          console.log("[runSimulation] Yielding message:", JSON.stringify(message, null, 2));
+          yield {
+            role: message.name ? 'assistant' : 'system',
+            content: message.content as string,
+            name: message.name,
+          };
+        }
+      } else {
+        console.log("[runSimulation] Chunk does not contain messages");
+      }
+    }
+
+    console.log("[runSimulation] Simulation complete.");
   } catch (error) {
     console.error("[runSimulation] Error invoking graph:", error);
     throw error;

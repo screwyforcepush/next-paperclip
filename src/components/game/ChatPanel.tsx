@@ -55,20 +55,46 @@ const ChatPanel: React.FC = () => {
 
     console.log('[ChatPanel] Submitting user input:', input);
     const userMessage: Message = { role: 'user', content: input.trim() };
-    const updatedGameState: GameState = {
-      ...gameState,
-      messages: [...gameState.messages, userMessage],
-    };
-    setGameState(updatedGameState);
+    setGameState(prevState => ({
+      ...prevState,
+      messages: [...prevState.messages, userMessage],
+    }));
     setInput('');
 
     try {
       console.log('[ChatPanel] Simulating business cycle');
-      const { gameState: newGameState } = await simulateBusinessCycle(input, updatedGameState);
-      console.log('[ChatPanel] Received updated game state after simulation:', newGameState);
-      setGameState(newGameState);
-      saveGameState(newGameState);
-      console.log('[ChatPanel] Updated game state saved to local storage');
+      const response = await fetch('/api/simulate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userInput: input, gameState }),
+      });
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value);
+        const messages = chunk.split('\n').filter(Boolean).map(JSON.parse);
+
+        for (const message of messages) {
+          if (message.type === 'gameState') {
+            setGameState(prevState => ({
+              ...prevState,
+              ...message.content,
+            }));
+          } else {
+            setGameState(prevState => ({
+              ...prevState,
+              messages: [...prevState.messages, message],
+            }));
+          }
+        }
+      }
+
+      console.log('[ChatPanel] Business cycle simulation complete');
     } catch (error) {
       console.error('[ChatPanel] Error simulating business cycle:', error);
     }

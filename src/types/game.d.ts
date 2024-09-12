@@ -10,10 +10,9 @@ export interface Decision {
 }
 
 export interface Message {
-  id: string;
-  sender: string;
+  role: 'user' | 'assistant' | 'system' | 'business_cycle';
   content: string;
-  type: 'system' | 'user' | 'ceo' | 'cto' | 'cfo' | 'cmo' | 'coo';
+  name?: string;
 }
 
 export interface KPIs {

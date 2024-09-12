@@ -1,65 +1,57 @@
-import { GameState, Message, KPI } from '@/types/game';
+import { GameState, Message } from '@/types/game';
 import { generateScenario } from './scenarioGenerator';
 import { calculateNewKPIs } from './kpiCalculator';
 import { runSimulation } from '../agents/agentManager';
 
 export class BusinessEngine {
-  static async runBusinessCycle(gameState: GameState, userInput: string): Promise<{
-    messages: Message[];
-    updatedGameState: GameState;
-  }> {
+  static async *runBusinessCycle(gameState: GameState, userInput: string): AsyncGenerator<Message, GameState> {
     console.log('[BusinessEngine] Running business cycle');
-    
 
-
-    // Run the AI agent simulation
-    const simulationResult = await runSimulation(gameState.currentSituation, userInput);
-    console.log('[BusinessEngine] Simulation result:', simulationResult);
-
-    // Extract messages from the simulation result
-    const simulationMessages = simulationResult.messages.map((msg: any) => ({
-      role: msg.type === 'human' ? 'user' : 'assistant',
-      content: msg.data.content,
-    }));
-
-    // Calculate new KPIs based on the simulation outcome
-    const currentKPIs = gameState.kpiHistory[gameState.kpiHistory.length - 1];
-    const newKPIs = calculateNewKPIs(currentKPIs, simulationResult);
-    console.log('[BusinessEngine] Generated new KPIs:', newKPIs);
-
-        // Increment the cycle
     const newCycle = gameState.currentCycle + 1;
     console.log(`[BusinessEngine] New cycle: ${newCycle}`);
 
-    // Generate new scenario
     let newScenario: string;
     try {
-        newScenario = await generateScenario({
+      newScenario = await generateScenario({
         ...gameState,
         currentCycle: newCycle,
-        });
-        console.log('[BusinessEngine] Generated new scenario:', newScenario);
+      });
+      console.log('[BusinessEngine] Generated new scenario:', newScenario);
     } catch (error) {
-        console.error('[BusinessEngine] Error generating scenario:', error);
-        newScenario = "An unexpected issue occurred. The CEO is working to resolve it.";
+      console.error('[BusinessEngine] Error generating scenario:', error);
+      newScenario = "An unexpected issue occurred. The CEO is working to resolve it.";
     }
 
-    const messages: Message[] = [
-      { role: 'business_cycle', content: newCycle.toString() },
-      { role: 'system', content: newScenario },
-      ...simulationMessages,
-    ];
+    console.log('[BusinessEngine] Yielding business cycle message');
+    yield { role: 'business_cycle', content: newCycle.toString() };
+    console.log('[BusinessEngine] Yielding system message with new scenario');
+    yield { role: 'system', content: newScenario };
+
+    console.log('[BusinessEngine] Starting simulation');
+    const simulationGenerator = runSimulation(newScenario, userInput);
+    const simulationMessages: Message[] = [];
+
+    for await (const message of simulationGenerator) {
+      console.log('[BusinessEngine] Received message from simulation:', JSON.stringify(message, null, 2));
+      simulationMessages.push(message as Message);
+      console.log('[BusinessEngine] Yielding message from simulation');
+      yield message as Message;
+    }
+
+    console.log('[BusinessEngine] Simulation complete, calculating new KPIs');
+    const currentKPIs = gameState.kpiHistory[gameState.kpiHistory.length - 1];
+    const newKPIs = calculateNewKPIs(currentKPIs, simulationMessages);
+    console.log('[BusinessEngine] Generated new KPIs:', newKPIs);
 
     const updatedGameState: GameState = {
       ...gameState,
       currentCycle: newCycle,
       kpiHistory: [...gameState.kpiHistory, newKPIs],
-      messages: [...gameState.messages, ...messages],
+      messages: [...gameState.messages, ...simulationMessages],
+      currentSituation: newScenario,
     };
 
-    console.log('[BusinessEngine] Updated game state:', updatedGameState);
-    console.log('[BusinessEngine] Returning messages and updated game state');
-
-    return { messages, updatedGameState };
+    console.log('[BusinessEngine] Updated game state:', JSON.stringify(updatedGameState, null, 2));
+    return updatedGameState;
   }
 }
