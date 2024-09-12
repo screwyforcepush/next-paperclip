@@ -22,7 +22,7 @@ export interface GameState {
 export type MessageContentComplex = string | { text: string };
 
 export interface Message {
-  role: 'user' | 'assistant' | 'system';
+  role: 'user' | 'assistant' | 'system' | 'business_cycle';
   content: string;
 }
 

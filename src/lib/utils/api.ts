@@ -32,6 +32,7 @@ export async function startNewGame(): Promise<GameState> {
       }],
       messages: [
         { role: 'system', content: "catface Welcome to Universal Paperclips! Let's start your journey as a business consultant." },
+        { role: 'business_cycle', content: '1' },
         { role: 'system', content: scenario },
       ],
     };

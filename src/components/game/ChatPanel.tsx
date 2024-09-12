@@ -90,8 +90,8 @@ const ChatPanel: React.FC = () => {
             console.log(`[ChatPanel] Rendering message ${index}:`, message);
             return (
               <React.Fragment key={index}>
-                {message.role === 'system' && message.content.startsWith('Business Cycle') ? (
-                  <BusinessCycleHeader cycleNumber={gameState.currentCycle} />
+                {message.role === 'business_cycle' ? (
+                  <BusinessCycleHeader cycleNumber={parseInt(message.content)} />
                 ) : (
                   <MessageBubble message={message} />
                 )}
