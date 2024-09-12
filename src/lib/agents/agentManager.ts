@@ -11,15 +11,20 @@ interface AgentResponse {
   messages: AIMessage[];
 }
 
+interface CEODecision {
+  decision: string;
+  assignments: Record<string, string>;
+}
+
 const AgentState = Annotation.Root({
   messages: Annotation<BaseMessage[]>({
     reducer: (x, y) => x.concat(y),
   }),
   situation: Annotation<string>(),
   userAdvice: Annotation<string>(),
-  cSuiteAssignments: Annotation<Record<string, string>>({
-    default: () => ({}),
-    reducer: (x, y) => ({ ...x, ...y }),
+  ceoDecision: Annotation<CEODecision | null>({
+    default: () => null,
+    value: (x, y) => y ?? x,
   }),
   completedAgents: Annotation<string[]>({
     default: () => [],
@@ -52,7 +57,11 @@ function routeAgent(state: typeof AgentState.State): "CEO" | "C_SUITE" | typeof 
 const ceoNode = async (state: typeof AgentState.State) => {
   console.log("[ceoNode] Starting CEO node");
   try {
-    const ceoResponse: AgentResponse = await ceoAgent({ situation: state.situation, userAdvice: state.userAdvice });
+    const ceoResponse: AgentResponse = await ceoAgent({
+      situation: state.situation,
+      userAdvice: state.userAdvice,
+      messages: state.messages,
+    });
     console.log("[ceoNode] CEO response:", ceoResponse);
 
     if (!ceoResponse.messages || ceoResponse.messages.length === 0) {
@@ -62,18 +71,18 @@ const ceoNode = async (state: typeof AgentState.State) => {
     const content = ceoResponse.messages[0].content;
     console.log("[ceoNode] CEO message content:", content);
 
-    let assignments: Record<string, string>;
+    let ceoDecision: CEODecision;
     try {
-      assignments = typeof content === 'string' ? JSON.parse(content) : content;
+      ceoDecision = JSON.parse(content as string);
     } catch (parseError) {
       console.error("[ceoNode] Error parsing CEO message content:", parseError);
-      assignments = {};
+      throw new Error("Invalid JSON from CEO agent");
     }
-    console.log("[ceoNode] Parsed assignments:", assignments);
+    console.log("[ceoNode] Parsed CEO decision:", ceoDecision);
 
     return {
       messages: [new AIMessage({ content: content as string, name: "CEO" })],
-      cSuiteAssignments: assignments,
+      ceoDecision: ceoDecision,
       completedAgents: ["CEO"],
     };
   } catch (error) {
@@ -94,9 +103,9 @@ const cSuiteNode = async (state: typeof AgentState.State) => {
   const newCompletedAgents: string[] = [];
   
   for (const [role, agent] of Object.entries(cSuiteAgents)) {
-    if (!state.completedAgents.includes(role)) {
-      const assignment = state.cSuiteAssignments[role];
-      const response = await agent({ situation: assignment, messages: [] });
+    if (!state.completedAgents.includes(role) && state.ceoDecision) {
+      const assignment = state.ceoDecision.assignments[role];
+      const response = await agent({ situation: assignment, messages: state.messages });
       if (response.messages && response.messages.length > 0) {
         newMessages.push(new AIMessage({ content: response.messages[0].content as string, name: role }));
         newCompletedAgents.push(role);
@@ -126,7 +135,7 @@ export async function runSimulation(situation: string, userAdvice: string) {
   
   workflow.addConditionalEdges(
     "CEO",
-    routeAgent,
+    routeAgent as (state: typeof AgentState.State) => "C_SUITE" | typeof END,
     {
       C_SUITE: "C_SUITE",
       [END]: END,
@@ -135,7 +144,7 @@ export async function runSimulation(situation: string, userAdvice: string) {
   
   workflow.addConditionalEdges(
     "C_SUITE",
-    routeAgent,
+    routeAgent as (state: typeof AgentState.State) => "C_SUITE" | typeof END,
     {
       C_SUITE: "C_SUITE",
       [END]: END,
@@ -151,7 +160,7 @@ export async function runSimulation(situation: string, userAdvice: string) {
       situation,
       userAdvice,
       messages: [],
-      cSuiteAssignments: {},
+      ceoDecision: null,
       completedAgents: [],
     });
     console.log("[runSimulation] Simulation complete. Result:", JSON.stringify(result, null, 2));
