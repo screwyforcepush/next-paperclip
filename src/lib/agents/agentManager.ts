@@ -6,7 +6,10 @@ import { ctoAgent } from "./ctoAgent";
 import { cfoAgent } from "./cfoAgent";
 import { cmoAgent } from "./cmoAgent";
 import { cooAgent } from "./cooAgent";
-import { MessageContentComplex } from "../../types/game";
+
+interface AgentResponse {
+  messages: AIMessage[];
+}
 
 const AgentState = Annotation.Root({
   messages: Annotation<BaseMessage[]>({
@@ -14,33 +17,98 @@ const AgentState = Annotation.Root({
   }),
   situation: Annotation<string>(),
   userAdvice: Annotation<string>(),
+  cSuiteAssignments: Annotation<Record<string, string>>({
+    default: () => ({}),
+    reducer: (x, y) => ({ ...x, ...y }),
+  }),
+  completedAgents: Annotation<string[]>({
+    default: () => [],
+    reducer: (x, y) => Array.from(new Set([...x, ...y])),
+  }),
 });
 
-function routeAgent(state: typeof AgentState.State) {
+function routeAgent(state: typeof AgentState.State): "CEO" | "C_SUITE" | typeof END {
   console.log("[routeAgent] Current state:", JSON.stringify(state, null, 2));
   
-  const lastMessage = state.messages[state.messages.length - 1] as AIMessage;
-  console.log("[routeAgent] Last message:", JSON.stringify(lastMessage, null, 2));
+  if (state.completedAgents.length === 0) {
+    console.log("[routeAgent] Starting with CEO");
+    return "CEO";
+  }
   
-  const content = lastMessage.content as MessageContentComplex;
-  const contentString = typeof content === 'string' ? content : content.text;
-  console.log("[routeAgent] Content string:", contentString);
+  if (state.completedAgents.length === 1) {
+    console.log("[routeAgent] CEO completed, routing to C-Suite");
+    return "C_SUITE";
+  }
   
-  if (contentString.includes("FINAL DECISION")) {
-    console.log("[routeAgent] Final decision reached, ending simulation");
+  if (state.completedAgents.length === 5) {
+    console.log("[routeAgent] All agents completed, ending simulation");
     return END;
   }
   
-  const agentOrder = ["CEO", "CTO", "CFO", "CMO", "COO"];
-  const currentAgent = lastMessage.name || "";
-  console.log("[routeAgent] Current agent:", currentAgent);
-  
-  const nextAgentIndex = (agentOrder.indexOf(currentAgent) + 1) % agentOrder.length;
-  const nextAgent = agentOrder[nextAgentIndex];
-  console.log("[routeAgent] Next agent:", nextAgent);
-  
-  return nextAgent;
+  console.log("[routeAgent] Continuing C-Suite responses");
+  return "C_SUITE";
 }
+
+const ceoNode = async (state: typeof AgentState.State) => {
+  console.log("[ceoNode] Starting CEO node");
+  try {
+    const ceoResponse: AgentResponse = await ceoAgent({ situation: state.situation, userAdvice: state.userAdvice });
+    console.log("[ceoNode] CEO response:", ceoResponse);
+
+    if (!ceoResponse.messages || ceoResponse.messages.length === 0) {
+      throw new Error("Invalid response from ceoAgent");
+    }
+
+    const content = ceoResponse.messages[0].content;
+    console.log("[ceoNode] CEO message content:", content);
+
+    let assignments: Record<string, string>;
+    try {
+      assignments = typeof content === 'string' ? JSON.parse(content) : content;
+    } catch (parseError) {
+      console.error("[ceoNode] Error parsing CEO message content:", parseError);
+      assignments = {};
+    }
+    console.log("[ceoNode] Parsed assignments:", assignments);
+
+    return {
+      messages: [new AIMessage({ content: content as string, name: "CEO" })],
+      cSuiteAssignments: assignments,
+      completedAgents: ["CEO"],
+    };
+  } catch (error) {
+    console.error("[ceoNode] Error in CEO node:", error);
+    throw error;
+  }
+};
+
+const cSuiteNode = async (state: typeof AgentState.State) => {
+  const cSuiteAgents: Record<string, (args: { situation: string; messages: AIMessage[] }) => Promise<AgentResponse>> = {
+    CTO: ctoAgent,
+    CFO: cfoAgent,
+    CMO: cmoAgent,
+    COO: cooAgent,
+  };
+  
+  const newMessages: BaseMessage[] = [];
+  const newCompletedAgents: string[] = [];
+  
+  for (const [role, agent] of Object.entries(cSuiteAgents)) {
+    if (!state.completedAgents.includes(role)) {
+      const assignment = state.cSuiteAssignments[role];
+      const response = await agent({ situation: assignment, messages: [] });
+      if (response.messages && response.messages.length > 0) {
+        newMessages.push(new AIMessage({ content: response.messages[0].content as string, name: role }));
+        newCompletedAgents.push(role);
+      }
+    }
+  }
+  
+  return {
+    messages: newMessages,
+    completedAgents: newCompletedAgents,
+  };
+};
 
 export async function runSimulation(situation: string, userAdvice: string) {
   console.log("[runSimulation] Starting simulation");
@@ -50,101 +118,32 @@ export async function runSimulation(situation: string, userAdvice: string) {
   const workflow = new StateGraph(AgentState);
 
   console.log("[runSimulation] Adding nodes to workflow");
-  workflow.addNode("CEO", ceoAgent);
-  workflow.addNode("CTO", ctoAgent);
-  workflow.addNode("CFO", cfoAgent);
-  workflow.addNode("CMO", cmoAgent);
-  workflow.addNode("COO", cooAgent);
+  workflow.addNode("CEO", ceoNode);
+  workflow.addNode("C_SUITE", cSuiteNode);
 
   console.log("[runSimulation] Adding edges to workflow");
-  try {
-    workflow.addConditionalEdges(
-      "CEO",
-      routeAgent,
-      {
-        CTO: "CTO",
-        CFO: "CFO",
-        CMO: "CMO",
-        COO: "COO",
-        [END]: END,
-      }
-    );
-    console.log("[runSimulation] Added conditional edge for CEO");
-
-    workflow.addConditionalEdges(
-      "CTO",
-      routeAgent,
-      {
-        CEO: "CEO",
-        CFO: "CFO",
-        CMO: "CMO",
-        COO: "COO",
-        [END]: END,
-      }
-    );
-    console.log("[runSimulation] Added conditional edge for CTO");
-
-    workflow.addConditionalEdges(
-      "CFO",
-      routeAgent,
-      {
-        CEO: "CEO",
-        CTO: "CTO",
-        CMO: "CMO",
-        COO: "COO",
-        [END]: END,
-      }
-    );
-    console.log("[runSimulation] Added conditional edge for CFO");
-
-    workflow.addConditionalEdges(
-      "CMO",
-      routeAgent,
-      {
-        CEO: "CEO",
-        CTO: "CTO",
-        CFO: "CFO",
-        COO: "COO",
-        [END]: END,
-      }
-    );
-    console.log("[runSimulation] Added conditional edge for CMO");
-
-    workflow.addConditionalEdges(
-      "COO",
-      routeAgent,
-      {
-        CEO: "CEO",
-        CTO: "CTO",
-        CFO: "CFO",
-        CMO: "CMO",
-        [END]: END,
-      }
-    );
-    console.log("[runSimulation] Added conditional edge for COO");
-  } catch (error) {
-    console.error("[runSimulation] Error adding edges:", error);
-    throw error;
-  }
-
-  console.log("[runSimulation] Setting entry point");
-  try {
-    workflow.setEntryPoint("CEO");
-    console.log("[runSimulation] Entry point set successfully");
-  } catch (error) {
-    console.error("[runSimulation] Error setting entry point:", error);
-    throw error;
-  }
+  workflow.addEdge("__start__", "CEO");
+  
+  workflow.addConditionalEdges(
+    "CEO",
+    routeAgent,
+    {
+      C_SUITE: "C_SUITE",
+      [END]: END,
+    }
+  );
+  
+  workflow.addConditionalEdges(
+    "C_SUITE",
+    routeAgent,
+    {
+      C_SUITE: "C_SUITE",
+      [END]: END,
+    }
+  );
 
   console.log("[runSimulation] Compiling graph");
-  let graph;
-  try {
-    graph = workflow.compile();
-    console.log("[runSimulation] Graph compiled successfully");
-  } catch (error) {
-    console.error("[runSimulation] Error compiling graph:", error);
-    throw error;
-  }
+  const graph = workflow.compile();
 
   console.log("[runSimulation] Invoking graph");
   try {
@@ -152,6 +151,8 @@ export async function runSimulation(situation: string, userAdvice: string) {
       situation,
       userAdvice,
       messages: [],
+      cSuiteAssignments: {},
+      completedAgents: [],
     });
     console.log("[runSimulation] Simulation complete. Result:", JSON.stringify(result, null, 2));
     return result;
@@ -160,3 +161,4 @@ export async function runSimulation(situation: string, userAdvice: string) {
     throw error;
   }
 }
+

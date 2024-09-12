@@ -3,10 +3,11 @@ import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 
-const model = new ChatOpenAI({
-  temperature: 0.7,
-  modelName: "gpt-3.5-turbo",
-});
+const model = new ChatOpenAI({ 
+    modelName: "gpt-4o-mini",
+    temperature: 0.7,
+    openAIApiKey: process.env.OPENAI_API_KEY,
+  });
 
 const communicationPrompt = PromptTemplate.fromTemplate(`
 You are the {role} of a paperclip manufacturing company. 
