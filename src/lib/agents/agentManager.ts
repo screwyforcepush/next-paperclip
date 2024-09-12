@@ -166,16 +166,24 @@ export async function* runSimulation(situation: string, userAdvice: string) {
       streamMode: "values",
     });
 
+    const yieldedMessages = new Set();
+
     for await (const chunk of stream) {
       console.log("[runSimulation] Received chunk:", JSON.stringify(chunk, null, 2));
       if (chunk.messages && chunk.messages.length > 0) {
         for (const message of chunk.messages) {
-          console.log("[runSimulation] Yielding message:", JSON.stringify(message, null, 2));
-          yield {
-            role: message.name ? 'assistant' : 'system',
-            content: message.content as string,
-            name: message.name,
-          };
+          const messageKey = `${message.name}-${message.content}`;
+          if (!yieldedMessages.has(messageKey)) {
+            console.log("[runSimulation] Yielding message:", JSON.stringify(message, null, 2));
+            yieldedMessages.add(messageKey);
+            yield {
+              role: message.name ? 'assistant' : 'system',
+              content: message.content as string,
+              name: message.name,
+            };
+          } else {
+            console.log("[runSimulation] Skipping duplicate message:", JSON.stringify(message, null, 2));
+          }
         }
       } else {
         console.log("[runSimulation] Chunk does not contain messages");

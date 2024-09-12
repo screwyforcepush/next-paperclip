@@ -19,19 +19,33 @@ export async function POST(req: NextRequest) {
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        console.log("[simulate] Running business cycle simulation");
+        console.log("[simulate] Starting business cycle simulation");
+        let messageCount = 0;
         let updatedGameState;
         for await (const message of BusinessEngine.runBusinessCycle(clientGameState, userInput)) {
-          console.log("[simulate] Received message from BusinessEngine:", JSON.stringify(message, null, 2));
+          messageCount++;
+          console.log(`[simulate] Received message ${messageCount} from BusinessEngine:`, JSON.stringify(message, null, 2));
           controller.enqueue(JSON.stringify(message) + '\n');
+          console.log(`[simulate] Enqueued message ${messageCount} to stream`);
+          
           if (message.role === 'business_cycle') {
+            console.log("[simulate] Received business cycle message, updating game state");
             updatedGameState = message.content;
           }
         }
         console.log("[simulate] Business cycle simulation complete");
-        console.log("[simulate] Sending final game state");
-        controller.enqueue(JSON.stringify({ type: 'gameState', content: updatedGameState }) + '\n');
+        console.log(`[simulate] Total messages processed: ${messageCount}`);
+        
+        if (updatedGameState) {
+          console.log("[simulate] Sending final game state");
+          controller.enqueue(JSON.stringify({ type: 'gameState', content: updatedGameState }) + '\n');
+          console.log("[simulate] Final game state enqueued to stream");
+        } else {
+          console.warn("[simulate] No updated game state received from BusinessEngine");
+        }
+        
         controller.close();
+        console.log("[simulate] Stream closed");
       } catch (error) {
         console.error("[simulate] Error in simulation:", error);
         controller.error(error);
