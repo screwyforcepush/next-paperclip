@@ -1,16 +1,17 @@
+import { ChatOpenAI } from "@langchain/openai";
+import { PromptTemplate } from "@langchain/core/prompts";
 import { GameState, KPI } from '../../types/game';
 
 export async function generateScenario(gameState?: GameState): Promise<string> {
-  console.log("[generateScenario] Generating new scenario");
+  console.log("[generateScenario] Starting scenario generation");
   
   let currentKPIs: KPI;
-  let currentCycle: number;
 
   if (gameState && gameState.kpiHistory && gameState.kpiHistory.length > 0) {
     currentKPIs = gameState.kpiHistory[gameState.kpiHistory.length - 1];
-    currentCycle = gameState.currentCycle;
+    console.log("[generateScenario] Using KPIs from game state");
   } else {
-    // Default KPIs for a new game
+    console.log("[generateScenario] Using default KPIs for new game");
     currentKPIs = {
       revenue: 1000000,
       profitMargin: 0.1,
@@ -19,41 +20,44 @@ export async function generateScenario(gameState?: GameState): Promise<string> {
       marketShare: 0.05,
       innovationIndex: 0.6
     };
-    currentCycle = 1;
   }
 
-  console.log("[generateScenario] Current KPIs:", currentKPIs);
+  console.log("[generateScenario] Current KPIs:", JSON.stringify(currentKPIs, null, 2));
 
-  // Generate a scenario based on the current KPIs
-  const scenario = `Welcome to Universal Paperclips! Let's start your journey as a business consultant.
+  const model = new ChatOpenAI({ 
+    modelName: "gpt-4o-mini",
+    temperature: 0.7,
+    openAIApiKey: process.env.OPENAI_API_KEY,
+  });
 
-Business Cycle ${currentCycle}
+  const template = `
+  You are an AI business consultant for a paperclip company. Given the following KPIs:
 
-Current KPIs:
-Revenue: $${currentKPIs.revenue.toLocaleString()}
-Profit Margin: ${(currentKPIs.profitMargin * 100).toFixed(1)}%
-CAC/CLV Ratio: ${currentKPIs.cacClvRatio.toFixed(2)}
-Production Efficiency Index: ${currentKPIs.productionEfficiencyIndex.toFixed(2)}
-Market Share: ${(currentKPIs.marketShare * 100).toFixed(1)}%
-Innovation Index: ${currentKPIs.innovationIndex.toFixed(2)}
+  Revenue: ${currentKPIs.revenue}
+  Profit Margin: ${currentKPIs.profitMargin}
+  CAC/CLV Ratio: ${currentKPIs.cacClvRatio}
+  Production Efficiency Index: ${currentKPIs.productionEfficiencyIndex}
+  Market Share: ${currentKPIs.marketShare}
+  Innovation Index: ${currentKPIs.innovationIndex}
 
-${generateChallenge(currentKPIs)}
-`;
+  Generate a business scenario (inflection point) that the company is facing. The scenario should:
+  1. Be related to the current state of the company as reflected in the KPIs.
+  2. Present a clear challenge or opportunity.
+  3. End with a question for the CEO to consider.
 
-  console.log("[generateScenario] Generated scenario:", scenario);
-  return scenario;
-}
+  Provide your response in 2-3 sentences, focusing on the most critical aspect of the scenario.
+  `;
 
-function generateChallenge(kpis: KPI): string {
-  // This is a placeholder. In a real implementation, you would use the KPIs
-  // to generate a relevant business challenge.
-  const challenge = "The company is facing increased competition in the market. ";
-  
-  if (kpis.marketShare < 0.1) {
-    return challenge + "How should we respond to increase our market share and maintain profitability?";
-  } else if (kpis.profitMargin < 0.15) {
-    return challenge + "What strategies can we implement to improve our profit margin while maintaining our market position?";
-  } else {
-    return challenge + "How can we leverage our strong position to further innovate and expand our market share?";
+  const prompt = PromptTemplate.fromTemplate(template);
+  const chain = prompt.pipe(model);
+
+  try {
+    console.log("[generateScenario] Generating scenario");
+    const result = await chain.invoke({});
+    console.log("[generateScenario] Scenario generated successfully");
+    return result.content as string;
+  } catch (error) {
+    console.error("[generateScenario] Error generating scenario:", error);
+    throw error;
   }
 }
