@@ -1,6 +1,5 @@
 import { saveGameState, clearGameState } from './localStorage';
 import { GameState } from '@/types/game';
-import { generateScenario } from '../simulation/scenarioGenerator';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 
@@ -10,11 +9,19 @@ export async function startNewGame(): Promise<GameState> {
     clearGameState();
 
     console.log('[api] Generating initial scenario');
-    const initialScenario = await generateScenario();
+    const initialScenario = await fetch(`${API_BASE_URL}/api/generateScenario`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+    });
+
+    const {scenario} = await initialScenario.json();
     
     const newGameState: GameState = {
       currentCycle: 1,
-      currentSituation: initialScenario,
+      currentSituation: scenario,
       kpiHistory: [{
         revenue: 1000000,
         profitMargin: 0.1,
@@ -24,8 +31,8 @@ export async function startNewGame(): Promise<GameState> {
         innovationIndex: 0.6
       }],
       messages: [
-        { role: 'system', content: "Welcome to Universal Paperclips! Let's start your journey as a business consultant." },
-        { role: 'system', content: initialScenario },
+        { role: 'system', content: "catface Welcome to Universal Paperclips! Let's start your journey as a business consultant." },
+        { role: 'system', content: scenario },
       ],
     };
 
