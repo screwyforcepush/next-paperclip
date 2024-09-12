@@ -8,7 +8,7 @@ import { z } from "zod";
 
 const model = new ChatOpenAI({
   temperature: 0.7,
-  modelName: "gpt-4",
+  modelName: "gpt-4o-mini",
 });
 
 const ceoPrompt = PromptTemplate.fromTemplate(`
@@ -17,7 +17,7 @@ You are the CEO of a paperclip manufacturing company. Your role is to make high-
 Current business situation: {situation}
 User advice: {userAdvice}
 
-Based on this information, make a high-level decision and delegate tasks to your C-suite team.
+Based on this information, make a high-level decision and delegate expected outcomes to your C-suite team.
 Provide your response in the following JSON format:
 
 {{
