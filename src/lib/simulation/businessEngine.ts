@@ -2,6 +2,7 @@ import { GameState, Message } from '@/types/game';
 import { generateScenario } from './scenarioGenerator';
 import { calculateNewKPIs } from './kpiCalculator';
 import { runSimulation } from '../agents/agentManager';
+import { analyzeImpact } from './impactAnalysis';
 
 export class BusinessEngine {
   static async *runBusinessCycle(gameState: GameState, userInput: string): AsyncGenerator<Message, GameState> {
@@ -27,9 +28,18 @@ export class BusinessEngine {
     console.log('[BusinessEngine] Simulation loop complete');
     console.log('[BusinessEngine] Total simulation messages:', simulationMessages.length);
 
+    // Extract C-suite actions
+    const cSuiteActions = simulationMessages
+      .filter(msg => ['CTO', 'CFO', 'CMO', 'COO'].includes(msg.name || ''))
+      .map(msg => msg.content);
+
+    console.log('[BusinessEngine] Analyzing impact');
+    const impactAnalysis = await analyzeImpact(gameState.currentSituation, cSuiteActions);
+    console.log('[BusinessEngine] Impact analysis:', impactAnalysis);
+
     console.log('[BusinessEngine] Calculating new KPIs');
     const currentKPIs = gameState.kpiHistory[gameState.kpiHistory.length - 1];
-    const newKPIs = calculateNewKPIs(currentKPIs, simulationMessages);
+    const newKPIs = calculateNewKPIs(currentKPIs, JSON.parse(impactAnalysis));
     console.log('[BusinessEngine] New KPIs:', JSON.stringify(newKPIs, null, 2));
 
     const newCycle = gameState.currentCycle + 1;
@@ -66,7 +76,7 @@ export class BusinessEngine {
       currentSituation: newScenario,
     };
 
-    console.log('[BusinessEngine] Updated game state:')//, JSON.stringify(updatedGameState, null, 2));
+    console.log('[BusinessEngine] Updated game state:');
     return updatedGameState;
   }
 }

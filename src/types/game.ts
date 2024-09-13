@@ -24,6 +24,7 @@ export type MessageContentComplex = string | { text: string };
 export interface Message {
   role: 'user' | 'assistant' | 'system' | 'business_cycle' | 'simulation_group' | 'simulation';
   content: string;
+  name?: string;
 }
 
 export interface KPI {

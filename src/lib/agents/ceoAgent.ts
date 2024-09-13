@@ -1,14 +1,11 @@
-import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { BaseMessage } from "@langchain/core/messages";
 import { z } from "zod";
+import { getChatOpenAI } from '@/lib/utils/openaiConfig';
 
-const model = new ChatOpenAI({
-  temperature: 0.7,
-  modelName: "gpt-4o-mini",
-});
+const model = getChatOpenAI();
 
 const ceoPrompt = PromptTemplate.fromTemplate(`
 You are the CEO of a paperclip manufacturing company. Your role is to make high-level decisions and delegate tasks to your C-suite team. Consider the user's advice, but make your own decisions based on the company's best interests.

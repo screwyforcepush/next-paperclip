@@ -1,6 +1,7 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { GameState, KPI } from '../../types/game';
+import { getChatOpenAI } from '@/lib/utils/openaiConfig';
 
 export async function generateScenario(gameState?: GameState): Promise<string> {
   console.log("[generateScenario] Starting scenario generation");
@@ -26,11 +27,7 @@ export async function generateScenario(gameState?: GameState): Promise<string> {
 
   try {
     console.log("[generateScenario] Initializing ChatOpenAI model");
-    const model = new ChatOpenAI({ 
-      modelName: "gpt-4o-mini",
-      temperature: 0.7,
-      openAIApiKey: process.env.OPENAI_API_KEY,
-    });
+    const model = getChatOpenAI();
 
     const template = `
     You are an AI business consultant for a paperclip company. Given the following KPIs:

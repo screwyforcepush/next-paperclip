@@ -1,5 +1,8 @@
-import { AIMessage } from "@langchain/core/messages";
-import { makeDecision } from "./decisionMaking";
+import { AIMessage, BaseMessage } from "@langchain/core/messages";
+import { PromptTemplate } from "@langchain/core/prompts";
+import { StringOutputParser } from "@langchain/core/output_parsers";
+import { RunnableSequence } from "@langchain/core/runnables";
+import { getChatOpenAI } from '@/lib/utils/openaiConfig';
 
 type CSuiteRole = "CTO" | "CFO" | "CMO" | "COO";
 
@@ -10,12 +13,49 @@ const cSuiteSystemPrompts: Record<CSuiteRole, string> = {
   COO: `You are the Chief Operating Officer of a paperclip manufacturing company. Your role is to oversee day-to-day operations, optimize processes, and propose operational improvements.`
 };
 
+const model = getChatOpenAI();
+
+function createAgentChain(role: CSuiteRole) {
+  const promptTemplate = PromptTemplate.fromTemplate(`
+    System: ${cSuiteSystemPrompts[role]}
+    Current business situation: {situation}
+    CEO's decision: {ceoDecision}
+
+    As the ${role}, what actions do you propose to take based on this information?
+    Respond with your one line rationale followed by a single priority action.
+  `);
+
+  return RunnableSequence.from([
+    promptTemplate,
+    model,
+    new StringOutputParser(),
+  ]);
+}
+
+async function makeDecision(
+  role: CSuiteRole,
+  state: { situation: string; messages: BaseMessage[] }
+): Promise<{ messages: AIMessage[] }> {
+  const chain = createAgentChain(role);
+  const ceoMessage = state.messages.find(m => m.name === "CEO");
+  const ceoDecision = ceoMessage ? ceoMessage.content : "";
+  
+  const response = await chain.invoke({
+    situation: state.situation,
+    ceoDecision: typeof ceoDecision === 'string' ? ceoDecision : JSON.stringify(ceoDecision),
+  });
+
+  return {
+    messages: [new AIMessage({ content: response, name: role })],
+  };
+}
+
 export function createCSuiteAgent(role: CSuiteRole) {
   return async function(state: {
     situation: string;
-    messages: AIMessage[];
+    messages: BaseMessage[];
   }) {
-    return makeDecision(role, cSuiteSystemPrompts[role], state);
+    return makeDecision(role, state);
   };
 }
 
