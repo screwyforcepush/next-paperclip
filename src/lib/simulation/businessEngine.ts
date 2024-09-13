@@ -36,10 +36,12 @@ export class BusinessEngine {
     console.log('[BusinessEngine] Analyzing impact');
     const impactAnalysis = await analyzeImpact(gameState.currentSituation, cSuiteActions);
     console.log('[BusinessEngine] Impact analysis:', impactAnalysis);
+    yield impactAnalysis;
+    simulationMessages.push(impactAnalysis);
 
     console.log('[BusinessEngine] Calculating new KPIs');
     const currentKPIs = gameState.kpiHistory[gameState.kpiHistory.length - 1];
-    const newKPIs = calculateNewKPIs(currentKPIs, JSON.parse(impactAnalysis));
+    const newKPIs = await calculateNewKPIs(currentKPIs, impactAnalysis.content);
     console.log('[BusinessEngine] New KPIs:', JSON.stringify(newKPIs, null, 2));
 
     const newCycle = gameState.currentCycle + 1;

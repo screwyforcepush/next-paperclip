@@ -13,11 +13,11 @@ You are the CEO of a paperclip manufacturing company. Your role is to make high-
 Current business situation: {situation}
 User advice: {userAdvice}
 
-Based on this information, make a high-level decision and delegate expected outcomes to your C-suite team.
+Based on this information, make a high-level decision based on your assumptions. and delegate expected outcomes to your C-suite team.
 Provide your response in the following JSON format:
 
 {{
-  "decision": "Your high-level decision",
+  "decision": "Your assumptions and high-level decision",
   "assignments": {{
     "CTO": "Task for CTO",
     "CFO": "Task for CFO",
