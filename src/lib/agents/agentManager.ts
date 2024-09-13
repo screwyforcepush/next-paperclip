@@ -2,10 +2,7 @@ import { StateGraph, END } from "@langchain/langgraph";
 import { Annotation } from "@langchain/langgraph";
 import { BaseMessage, AIMessage } from "@langchain/core/messages";
 import { ceoAgent } from "./ceoAgent";
-import { ctoAgent } from "./ctoAgent";
-import { cfoAgent } from "./cfoAgent";
-import { cmoAgent } from "./cmoAgent";
-import { cooAgent } from "./cooAgent";
+import { ctoAgent, cfoAgent, cmoAgent, cooAgent } from "./cSuiteAgents";
 
 interface AgentResponse {
   messages: AIMessage[];
@@ -57,32 +54,16 @@ function routeAgent(state: typeof AgentState.State): "CEO" | "C_SUITE" | typeof 
 const ceoNode = async (state: typeof AgentState.State) => {
   console.log("[ceoNode] Starting CEO node");
   try {
-    const ceoResponse: AgentResponse = await ceoAgent({
+    const ceoResponse: CEODecision = await ceoAgent({
       situation: state.situation,
       userAdvice: state.userAdvice,
       messages: state.messages,
     });
     console.log("[ceoNode] CEO response:", ceoResponse);
 
-    if (!ceoResponse.messages || ceoResponse.messages.length === 0) {
-      throw new Error("Invalid response from ceoAgent");
-    }
-
-    const content = ceoResponse.messages[0].content;
-    console.log("[ceoNode] CEO message content:", content);
-
-    let ceoDecision: CEODecision;
-    try {
-      ceoDecision = JSON.parse(content as string);
-    } catch (parseError) {
-      console.error("[ceoNode] Error parsing CEO message content:", parseError);
-      throw new Error("Invalid JSON from CEO agent");
-    }
-    console.log("[ceoNode] Parsed CEO decision:", ceoDecision);
-
     return {
-      messages: [new AIMessage({ content: content as string, name: "CEO" })],
-      ceoDecision: ceoDecision,
+      messages: [new AIMessage({ content: ceoResponse.decision, name: "CEO" })],
+      ceoDecision: ceoResponse,
       completedAgents: ["CEO"],
     };
   } catch (error) {
@@ -92,7 +73,7 @@ const ceoNode = async (state: typeof AgentState.State) => {
 };
 
 const cSuiteNode = async (state: typeof AgentState.State) => {
-  const cSuiteAgents: Record<string, (args: { situation: string; messages: AIMessage[] }) => Promise<AgentResponse>> = {
+  const cSuiteAgents = {
     CTO: ctoAgent,
     CFO: cfoAgent,
     CMO: cmoAgent,

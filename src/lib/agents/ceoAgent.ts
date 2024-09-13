@@ -1,5 +1,4 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { AIMessage } from "@langchain/core/messages";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import { RunnableSequence } from "@langchain/core/runnables";
@@ -59,7 +58,5 @@ export async function ceoAgent(state: {
     userAdvice: state.userAdvice,
   });
 
-  return {
-    messages: [new AIMessage({ content: JSON.stringify(response), name: "CEO" })],
-  };
+  return response;
 }
