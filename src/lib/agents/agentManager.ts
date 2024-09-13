@@ -155,7 +155,7 @@ export async function* runSimulation(situation: string, userAdvice: string) {
             console.log("[runSimulation] Yielding message:", message.name);
             yieldedMessages.add(messageKey);
             yield {
-              role: message.name ? 'assistant' : 'system',
+              role: "simulation",
               content: message.content as string,
               name: message.name,
             };

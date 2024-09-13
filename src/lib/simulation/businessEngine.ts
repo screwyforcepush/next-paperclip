@@ -5,19 +5,23 @@ import { runSimulation } from '../agents/agentManager';
 
 export class BusinessEngine {
   static async *runBusinessCycle(gameState: GameState, userInput: string): AsyncGenerator<Message, GameState> {
+    const simulationMessages: Message[] = [];
+    
+    // Add simulation group message
+    const simulationGroupMessage: Message = { role: 'simulation_group', content: "running simulation" };
+    simulationMessages.push(simulationGroupMessage);
+    yield simulationGroupMessage;
+
     console.log('[BusinessEngine] Running business cycle');
     console.log('[BusinessEngine] Current game state:', JSON.stringify(gameState, null, 2));
     console.log('[BusinessEngine] User input:', userInput);
 
     console.log('[BusinessEngine] Starting simulation');
     const simulationGenerator = runSimulation(gameState.currentSituation, userInput);
-    const simulationMessages: Message[] = [];
 
     console.log('[BusinessEngine] Entering simulation loop');
     for await (const message of simulationGenerator) {
-      console.log('[BusinessEngine] Received message from simulation:', JSON.stringify(message, null, 2));
       simulationMessages.push(message as Message);
-      console.log('[BusinessEngine] Yielding message to client');
       yield message as Message;
     }
     console.log('[BusinessEngine] Simulation loop complete');
@@ -44,10 +48,15 @@ export class BusinessEngine {
       newScenario = "An unexpected issue occurred. The CEO is working to resolve it.";
     }
 
-    console.log('[BusinessEngine] Yielding business cycle message');
-    yield { role: 'business_cycle', content: newCycle.toString() };
-    console.log('[BusinessEngine] Yielding system message with new scenario');
-    yield { role: 'system', content: newScenario };
+    // Add business cycle message
+    const businessCycleMessage: Message = { role: 'business_cycle', content: newCycle.toString() };
+    simulationMessages.push(businessCycleMessage);
+    yield businessCycleMessage;
+
+    // Add system message with new scenario
+    const systemMessage: Message = { role: 'system', content: newScenario };
+    simulationMessages.push(systemMessage);
+    yield systemMessage;
 
     const updatedGameState: GameState = {
       ...gameState,
