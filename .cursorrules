@@ -22,8 +22,6 @@ project-root/
 ├── src/
 │   ├── app/
 │   │   ├── api/
-│   │   │   ├── newGame/
-│   │   │   │   └── route.ts
 │   │   │   ├── simulate/
 │   │   │   │   └── route.ts
 │   │   │   └── generateScenario/
@@ -50,10 +48,7 @@ project-root/
 │   │   │   ├── agentManager.ts
 │   │   │   ├── decisionMaking.ts
 │   │   │   ├── ceoAgent.ts
-│   │   │   ├── ctoAgent.ts
-│   │   │   ├── cfoAgent.ts
-│   │   │   ├── cmoAgent.ts
-│   │   │   └── cooAgent.ts
+│   │   │   ├── cSuiteAgents.ts
 │   │   ├── simulation/
 │   │   │   ├── businessEngine.ts
 │   │   │   └── kpiCalculator.ts
@@ -163,7 +158,6 @@ project-root/
 ## 6. AI Agent Implementation
 
 - Utilize LangChain and LangGraph for agent logic
-- Implement separate agent files for CEO, CTO, CFO, CMO, and COO
 - Agents should consider user advice as a weighted factor in decision-making
 - Ensure transparency of agent actions in the chat interface
 
