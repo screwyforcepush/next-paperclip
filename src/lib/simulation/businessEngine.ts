@@ -51,8 +51,7 @@ export class BusinessEngine {
     let newScenario: string;
     try {
       newScenario = await generateScenario({
-        ...gameState,
-        currentCycle: newCycle,
+        impactAnalysis,
       });
       console.log('[BusinessEngine] New scenario:', newScenario);
     } catch (error) {

@@ -15,7 +15,10 @@ const GraphState = Annotation.Root({
 });
 
 const critiqueTemplate = `
-You are an expert business analyst. Given the upcoming Inflection Point and a list of actions taken by the C-suite executives, critique these actions and highlight uncertainties across Internal and external market, and Capability and technology.
+You are an expert business analyst. Given the upcoming Inflection Point and a list of actions taken by the C-suite executives, critique these actions
+highlight uncertainties across Internal and external market, and Capability and technology.
+Pick at the gaps in the Actions, what could go wrong?
+Cotastraphise 
 
 Business:
 Universal Paperclips is a rapidly growing startup founded two years ago by tech entrepreneur Alex Turing. The company has revolutionized the seemingly mundane paperclip industry by integrating cutting-edge AI technology into its production and business processes. Currently in its early growth stage, Universal Paperclips is experiencing both the excitement of success and the challenges of rapid expansion.
@@ -47,7 +50,7 @@ const simulateTemplate = `
 
 Use your GrowthForecastModels SKILLS to Simulate the business cycle.
 As World Simulator, you Respond with a short naritive describing what takes place as the Business transitions through the Inflection Point during this business cycle. 
-
+It is not smooth sailing, there are bumps in the road. flaws in the plan, and unforeseen events can derail the C-suite execution.
 
 - Do not reitterate the current state of the business, we are looking forward.
 - Do not include any preamble or postlude, just a narrative of what takes place.

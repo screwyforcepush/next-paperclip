@@ -4,9 +4,6 @@ import { BaseMessage, AIMessage } from "@langchain/core/messages";
 import { ceoAgent } from "./ceoAgent";
 import { ctoAgent, cfoAgent, cmoAgent, cooAgent } from "./cSuiteAgents";
 
-interface AgentResponse {
-  messages: AIMessage[];
-}
 
 interface CEODecision {
   decision: string;

@@ -1,50 +1,39 @@
-import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { GameState, KPI } from '../../types/game';
 import { getChatOpenAI } from '@/lib/utils/openaiConfig';
 
-export async function generateScenario(gameState?: GameState): Promise<string> {
+export async function generateScenario(impactAnalysis?: string): Promise<string> {
   console.log("[generateScenario] Starting scenario generation");
-  
-  let currentKPIs: KPI;
-
-  if (gameState && gameState.kpiHistory && gameState.kpiHistory.length > 0) {
-    currentKPIs = gameState.kpiHistory[gameState.kpiHistory.length - 1];
-    console.log("[generateScenario] Using KPIs from game state");
-  } else {
-    console.log("[generateScenario] Using default KPIs for new game");
-    currentKPIs = {
-      revenue: 1000000,
-      profitMargin: 0.1,
-      cacClvRatio: 0.5,
-      productionEfficiencyIndex: 0.7,
-      marketShare: 0.05,
-      innovationIndex: 0.6
-    };
-  }
-
-  console.log("[generateScenario] Current KPIs:", JSON.stringify(currentKPIs, null, 2));
 
   try {
     console.log("[generateScenario] Initializing ChatOpenAI model");
     const model = getChatOpenAI();
 
     const template = `
-    You are an AI business consultant for a paperclip company. Given the following KPIs:
+    You are Storm Generator
 
-    Revenue: ${currentKPIs.revenue}
-    Profit Margin: ${currentKPIs.profitMargin}
-    CAC/CLV Ratio: ${currentKPIs.cacClvRatio}
-    Production Efficiency Index: ${currentKPIs.productionEfficiencyIndex}
-    Market Share: ${currentKPIs.marketShare}
-    Innovation Index: ${currentKPIs.innovationIndex}
-
-    Generate a business scenario (inflection point) that the company is facing. The scenario should:
-    1. Be related to the current state of the company as reflected in the KPIs.
-    2. Present a clear challenge or opportunity.
-    3. End with a question for the CEO to consider.
-
+    [TASK]
+    Generate an upcoming business scenario (inflection point) that the market is facing.
+    As the generator of Storms, your scenario should present both opportunity and great risk if fumbled.
+    The inflection point you generate will be faced by Universal Paperclips.
     Provide your response in 2-3 sentences, focusing on the most critical aspect of the scenario.
+
+
+    [/TASK]
+
+    Universal Paperclips:
+    A rapidly growing startup founded two years ago by tech entrepreneur Alex Turing. The company has revolutionized the seemingly mundane paperclip industry by integrating cutting-edge AI technology into its production and business processes. Currently in its early growth stage, Universal Paperclips is experiencing both the excitement of success and the challenges of rapid expansion.
+    Primary product - High-quality, innovative paperclips
+    Target market - Initially B2B office supply sector, now expanding into specialized industries
+    Headquarters - Silicon Valley, California
+    Manufacturing - One facility in California
+    Employees - 50 employees across manufacturing, sales, and administration
+    R&D - Significant investment in AI and materials science
+
+
+        ${impactAnalysis ? `
+    Recent Activity:
+    ${impactAnalysis}
+    ` : ''}
     `;
 
     console.log("[generateScenario] Creating prompt template");
