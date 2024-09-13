@@ -57,7 +57,7 @@ export class BusinessEngine {
       currentSituation: newScenario,
     };
 
-    console.log('[BusinessEngine] Updated game state:', JSON.stringify(updatedGameState, null, 2));
+    console.log('[BusinessEngine] Updated game state:')//, JSON.stringify(updatedGameState, null, 2));
     return updatedGameState;
   }
 }

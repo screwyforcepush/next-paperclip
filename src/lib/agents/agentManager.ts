@@ -30,7 +30,7 @@ const AgentState = Annotation.Root({
 });
 
 function routeAgent(state: typeof AgentState.State): "CEO" | "CTO" | "CFO" | "CMO" | "COO" | typeof END {
-  console.log("[routeAgent] Current state:", JSON.stringify(state, null, 2));
+//   console.log("[routeAgent] Current state:", JSON.stringify(state, null, 2));
   
   if (state.completedAgents.length === 0) {
     console.log("[routeAgent] Starting with CEO");
@@ -77,6 +77,7 @@ const createCSuiteNode = (role: string, agent: Function) => async (state: typeof
   if (state.ceoDecision && state.ceoDecision.assignments[role]) {
     const assignment = state.ceoDecision.assignments[role];
     const response = await agent({ situation: assignment, messages: state.messages });
+    console.log(`[${role}Node] assignment ${assignment} ${role} response:`, response.messages[0].content);
     return {
       messages: [new AIMessage({ content: response.messages[0].content as string, name: role })],
       completedAgents: [role],
@@ -146,12 +147,12 @@ export async function* runSimulation(situation: string, userAdvice: string) {
     const yieldedMessages = new Set();
 
     for await (const chunk of stream) {
-      console.log("[runSimulation] Received chunk:", JSON.stringify(chunk, null, 2));
+    //   console.log("[runSimulation] Received chunk:", JSON.stringify(chunk, null, 2));
       if (chunk.messages && chunk.messages.length > 0) {
         for (const message of chunk.messages) {
           const messageKey = `${message.name}-${message.content}`;
           if (!yieldedMessages.has(messageKey)) {
-            console.log("[runSimulation] Yielding message:", JSON.stringify(message, null, 2));
+            console.log("[runSimulation] Yielding message:", message.name);
             yieldedMessages.add(messageKey);
             yield {
               role: message.name ? 'assistant' : 'system',
@@ -159,7 +160,7 @@ export async function* runSimulation(situation: string, userAdvice: string) {
               name: message.name,
             };
           } else {
-            console.log("[runSimulation] Skipping duplicate message:", JSON.stringify(message, null, 2));
+            console.log("[runSimulation] Skipping duplicate message:", message.name);
           }
         }
       } else {
