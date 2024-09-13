@@ -6,7 +6,7 @@ export function loadGameState(): GameState | null {
   if (typeof window === 'undefined') return null;
   const savedState = localStorage.getItem(GAME_STATE_KEY);
   if (savedState) {
-    console.log('[localStorage] Loaded game state from local storage');
+    console.log('[localStorage] Loaded game state from local storage:', savedState);
     return JSON.parse(savedState);
   } else {
     console.log('[localStorage] No saved game state found in local storage');
@@ -16,8 +16,9 @@ export function loadGameState(): GameState | null {
 
 export function saveGameState(gameState: GameState): void {
   if (typeof window !== 'undefined') {
-    localStorage.setItem(GAME_STATE_KEY, JSON.stringify(gameState));
-    console.log('[localStorage] Saved game state to local storage');
+    const stateToSave = JSON.stringify(gameState);
+    localStorage.setItem(GAME_STATE_KEY, stateToSave);
+    console.log('[localStorage] Saved game state to local storage:', stateToSave);
   }
 }
 

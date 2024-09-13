@@ -10,13 +10,13 @@ import { loadGameState, saveGameState } from '@/lib/utils/localStorage';
 
 const ChatPanel: React.FC = () => {
   const { gameState, dispatch } = useGameState();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     console.log('[ChatPanel] Component mounted, current gameState:', gameState);
-    if (!gameState) {
+    if (gameState.messages.length === 0) {
       const savedState = loadGameState();
       if (savedState) {
         console.log('[ChatPanel] Loaded game state from local storage:', savedState);
@@ -26,6 +26,7 @@ const ChatPanel: React.FC = () => {
         handleNewGame();
       }
     }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -114,8 +115,8 @@ const ChatPanel: React.FC = () => {
           <div className="flex items-center justify-center h-full">
             <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
           </div>
-        ) : !gameState || gameState.messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-red-500">Loading game state...</div>
+        ) : gameState.messages.length === 0 ? (
+          <div className="flex items-center justify-center h-full text-red-500">No messages yet. Start a new game or provide advice.</div>
         ) : (
           gameState.messages.map((message, index) => {
             console.log(`[ChatPanel] Rendering message ${index}:`, message);

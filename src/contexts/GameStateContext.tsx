@@ -64,12 +64,18 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const savedState = loadGameState();
     if (savedState) {
+      console.log('[GameStateContext] Loading saved state:', savedState);
       dispatch({ type: 'SET_GAME_STATE', payload: savedState });
+    } else {
+      console.log('[GameStateContext] No saved state found, using initial state');
     }
   }, []);
 
   useEffect(() => {
-    saveGameState(gameState);
+    if (gameState !== initialState) {
+      console.log('[GameStateContext] Saving game state:', gameState);
+      saveGameState(gameState);
+    }
   }, [gameState]);
 
   console.log('[GameStateContext] Current game state:', gameState);
