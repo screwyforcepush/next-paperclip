@@ -21,28 +21,19 @@ export async function POST(req: NextRequest) {
       try {
         console.log("[simulate] Starting business cycle simulation");
         let messageCount = 0;
-        let updatedGameState;
         for await (const message of BusinessEngine.runBusinessCycle(clientGameState, userInput)) {
           messageCount++;
-          console.log(`[simulate] Received message ${messageCount} from BusinessEngine:`, JSON.stringify(message, null, 2));
-          controller.enqueue(JSON.stringify(message) + '\n');
-          console.log(`[simulate] Enqueued message ${messageCount} to stream`);
-          
-          if (message.role === 'business_cycle') {
-            console.log("[simulate] Received business cycle message, updating game state");
-            updatedGameState = message.content;
+          if ('type' in message && message.type === 'gameState') {
+            console.log(`[simulate] Received game state update:`, JSON.stringify(message.content, null, 2));
+            controller.enqueue(JSON.stringify(message) + '\n');
+          } else {
+            console.log(`[simulate] Received message ${messageCount} from BusinessEngine:`, JSON.stringify(message, null, 2));
+            controller.enqueue(JSON.stringify(message) + '\n');
           }
+          console.log(`[simulate] Enqueued message ${messageCount} to stream`);
         }
         console.log("[simulate] Business cycle simulation complete");
         console.log(`[simulate] Total messages processed: ${messageCount}`);
-        
-        if (updatedGameState) {
-          console.log("[simulate] Sending final game state");
-          controller.enqueue(JSON.stringify({ type: 'gameState', content: updatedGameState }) + '\n');
-          console.log("[simulate] Final game state enqueued to stream");
-        } else {
-          console.warn("[simulate] No updated game state received from BusinessEngine");
-        }
         
         controller.close();
         console.log("[simulate] Stream closed");
@@ -53,8 +44,5 @@ export async function POST(req: NextRequest) {
     }
   });
 
-  console.log("[simulate] Returning stream response");
-  return new Response(stream, {
-    headers: { 'Content-Type': 'application/x-ndjson' }
-  });
+  return new Response(stream);
 }

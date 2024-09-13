@@ -6,14 +6,14 @@ import { startNewGame } from '@/lib/utils/api';
 
 const GameHeader: React.FC = () => {
   const [isOverviewOpen, setIsOverviewOpen] = useState(false);
-  const { setGameState } = useGameState();
+  const { dispatch } = useGameState();
 
   const handleNewGame = async () => {
     try {
       console.log('[GameHeader] Starting new game');
       const newGameState = await startNewGame();
       console.log('[GameHeader] New game state received:', newGameState);
-      setGameState(newGameState);
+      dispatch({ type: 'SET_GAME_STATE', payload: newGameState });
     } catch (error) {
       console.error('[GameHeader] Failed to start new game:', error);
     }

@@ -4,12 +4,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useGameState } from '@/contexts/GameStateContext';
 import MessageBubble from './MessageBubble';
 import BusinessCycleHeader from './BusinessCycleHeader';
-import { startNewGame, simulateBusinessCycle } from '@/lib/utils/api';
-import { Message, GameState } from '@/types/game';
+import { startNewGame } from '@/lib/utils/api';
+import { Message } from '@/types/game';
 import { loadGameState, saveGameState } from '@/lib/utils/localStorage';
 
 const ChatPanel: React.FC = () => {
-  const { gameState, setGameState } = useGameState();
+  const { gameState, dispatch } = useGameState();
   const [loading, setLoading] = useState(false);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -20,7 +20,7 @@ const ChatPanel: React.FC = () => {
       const savedState = loadGameState();
       if (savedState) {
         console.log('[ChatPanel] Loaded game state from local storage:', savedState);
-        setGameState(savedState);
+        dispatch({ type: 'SET_GAME_STATE', payload: savedState });
       } else {
         console.log('[ChatPanel] No saved state found, starting new game');
         handleNewGame();
@@ -39,7 +39,7 @@ const ChatPanel: React.FC = () => {
       console.log('[ChatPanel] Starting new game');
       const newGameState = await startNewGame();
       console.log('[ChatPanel] New game state received:', newGameState);
-      setGameState(newGameState);
+      dispatch({ type: 'SET_GAME_STATE', payload: newGameState });
       saveGameState(newGameState);
       console.log('[ChatPanel] New game state saved to local storage');
     } catch (error) {
@@ -55,10 +55,7 @@ const ChatPanel: React.FC = () => {
 
     console.log('[ChatPanel] Submitting user input:', input);
     const userMessage: Message = { role: 'user', content: input.trim() };
-    setGameState(prevState => ({
-      ...prevState,
-      messages: [...prevState.messages, userMessage],
-    }));
+    dispatch({ type: 'ADD_MESSAGE', payload: userMessage });
     setInput('');
 
     try {
@@ -69,6 +66,10 @@ const ChatPanel: React.FC = () => {
         body: JSON.stringify({ userInput: input, gameState }),
       });
 
+      if (!response.body) {
+        throw new Error('Response body is null');
+      }
+
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
 
@@ -77,19 +78,23 @@ const ChatPanel: React.FC = () => {
         if (done) break;
         
         const chunk = decoder.decode(value);
-        const messages = chunk.split('\n').filter(Boolean).map(JSON.parse);
+        const messages = chunk.split('\n').filter(Boolean);
 
         for (const message of messages) {
-          if (message.type === 'gameState') {
-            setGameState(prevState => ({
-              ...prevState,
-              ...message.content,
-            }));
-          } else {
-            setGameState(prevState => ({
-              ...prevState,
-              messages: [...prevState.messages, message],
-            }));
+          try {
+            const parsedMessage = JSON.parse(message);
+            if (parsedMessage.type === 'gameState') {
+              console.log('[ChatPanel] Received new game state:', parsedMessage.content);
+              if (typeof parsedMessage.content === 'object') {
+                dispatch({ type: 'SET_GAME_STATE', payload: parsedMessage.content });
+              } else {
+                console.error('[ChatPanel] Received invalid game state:', parsedMessage.content);
+              }
+            } else {
+              dispatch({ type: 'ADD_MESSAGE', payload: parsedMessage });
+            }
+          } catch (error) {
+            console.error('[ChatPanel] Error parsing message:', error, 'Raw message:', message);
           }
         }
       }

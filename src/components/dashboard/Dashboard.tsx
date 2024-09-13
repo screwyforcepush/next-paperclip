@@ -17,6 +17,10 @@ const Dashboard: React.FC = () => {
   const { gameState } = useGameState();
   const { kpiHistory, currentCycle } = gameState || { kpiHistory: [], currentCycle: 0 };
 
+  if (!gameState) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="h-full overflow-y-auto">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">

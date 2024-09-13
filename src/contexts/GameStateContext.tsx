@@ -1,27 +1,81 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
-import { GameState } from '@/types/game';
+import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import { GameState, Message, KPIState } from '@/types/game';
+import { loadGameState, saveGameState } from '@/lib/utils/localStorage';
+
+type Action =
+  | { type: 'UPDATE_KPI'; payload: KPIState }
+  | { type: 'ADD_MESSAGE'; payload: Message }
+  | { type: 'SET_CURRENT_CYCLE'; payload: number }
+  | { type: 'SET_CURRENT_SITUATION'; payload: string }
+  | { type: 'RESET_GAME' }
+  | { type: 'SET_GAME_STATE'; payload: GameState };
+
+const initialState: GameState = {
+  currentCycle: 1,
+  currentSituation: '',
+  kpiHistory: [],
+  messages: [],
+};
+
+const gameReducer = (state: GameState, action: Action): GameState => {
+  console.log('[GameStateContext] Dispatching action:', action);
+  switch (action.type) {
+    case 'UPDATE_KPI':
+      return {
+        ...state,
+        kpiHistory: [...state.kpiHistory, action.payload],
+      };
+    case 'ADD_MESSAGE':
+      return {
+        ...state,
+        messages: [...state.messages, action.payload],
+      };
+    case 'SET_CURRENT_CYCLE':
+      return {
+        ...state,
+        currentCycle: action.payload,
+      };
+    case 'SET_CURRENT_SITUATION':
+      return {
+        ...state,
+        currentSituation: action.payload,
+      };
+    case 'RESET_GAME':
+      return initialState;
+    case 'SET_GAME_STATE':
+      return typeof action.payload === 'string' ? JSON.parse(action.payload) : action.payload;
+    default:
+      return state;
+  }
+};
 
 interface GameStateContextType {
-  gameState: GameState | null;
-  setGameState: (newState: GameState | null) => void;
+  gameState: GameState;
+  dispatch: React.Dispatch<Action>;
 }
 
 const GameStateContext = createContext<GameStateContextType | undefined>(undefined);
 
 export function GameStateProvider({ children }: { children: ReactNode }) {
-  const [gameState, setGameStateInternal] = useState<GameState | null>(null);
+  const [gameState, dispatch] = useReducer(gameReducer, initialState);
+
+  useEffect(() => {
+    const savedState = loadGameState();
+    if (savedState) {
+      dispatch({ type: 'SET_GAME_STATE', payload: savedState });
+    }
+  }, []);
+
+  useEffect(() => {
+    saveGameState(gameState);
+  }, [gameState]);
 
   console.log('[GameStateContext] Current game state:', gameState);
 
-  const setGameState = useCallback((newState: GameState | null) => {
-    console.log('[GameStateContext] Updating game state:', newState);
-    setGameStateInternal(newState);
-  }, []);
-
   return (
-    <GameStateContext.Provider value={{ gameState, setGameState }}>
+    <GameStateContext.Provider value={{ gameState, dispatch }}>
       {children}
     </GameStateContext.Provider>
   );

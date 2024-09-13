@@ -5,7 +5,7 @@ import { runSimulation } from '../agents/agentManager';
 import { analyzeImpact } from './impactAnalysis';
 
 export class BusinessEngine {
-  static async *runBusinessCycle(gameState: GameState, userInput: string): AsyncGenerator<Message, GameState> {
+  static async *runBusinessCycle(gameState: GameState, userInput: string): AsyncGenerator<Message | { type: string; content: GameState }, GameState> {
     const simulationMessages: Message[] = [];
     
     // Add simulation group message
@@ -78,7 +78,8 @@ export class BusinessEngine {
       currentSituation: newScenario,
     };
 
-    console.log('[BusinessEngine] Updated game state:');
+    console.log('[BusinessEngine] Updated game state:', updatedGameState);
+    yield { type: 'gameState', content: updatedGameState };
     return updatedGameState;
   }
 }
