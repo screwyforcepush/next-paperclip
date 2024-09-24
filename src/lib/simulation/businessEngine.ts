@@ -18,13 +18,13 @@ export class BusinessEngine {
   ): AsyncGenerator<GeneratorMessage, GameState> {
     const simulationMessages: Message[] = [];
 
-    const newCycle = gameState.currentCycle + 1; // Calculate the new cycle number
+    const currentCycle = gameState.currentCycle; // Calculate the new cycle number
 
     // Add simulation group message with cycleNumber
     const simulationGroupMessage: Message = {
       role: 'simulation_group',
       content: "running simulation",
-      cycleNumber: newCycle, // Assign cycleNumber
+      cycleNumber: currentCycle, // Assign cycleNumber
     };
     simulationMessages.push(simulationGroupMessage);
     yield simulationGroupMessage;
@@ -38,7 +38,7 @@ export class BusinessEngine {
 
     console.log('[BusinessEngine] Entering simulation loop');
     for await (const message of simulationGenerator) {
-      message.cycleNumber = newCycle; // Assign cycleNumber
+      message.cycleNumber = currentCycle; // Assign cycleNumber
       simulationMessages.push(message as Message);
       yield message as Message;
     }
@@ -62,7 +62,19 @@ export class BusinessEngine {
     console.log('[BusinessEngine] New KPIs:', JSON.stringify(newKPIs, null, 2));
     yield { type: 'kpis', content: newKPIs };
 
+
+    // Add business cycle message
+
+    const newCycle = gameState.currentCycle + 1; // Calculate the new cycle number
     console.log(`[BusinessEngine] New cycle: ${newCycle}`);
+    const businessCycleMessage: Message = {
+      role: 'business_cycle',
+      content: newCycle.toString(),
+      cycleNumber: newCycle, // Assign cycleNumber
+    };
+    simulationMessages.push(businessCycleMessage);
+    yield businessCycleMessage;
+
 
     console.log('[BusinessEngine] Generating new scenario');
     let newScenario: string;
@@ -74,15 +86,7 @@ export class BusinessEngine {
       newScenario = "An unexpected issue occurred. The CEO is working to resolve it.";
     }
 
-    // Add business cycle message
-    const businessCycleMessage: Message = {
-      role: 'business_cycle',
-      content: newCycle.toString(),
-      cycleNumber: newCycle, // Assign cycleNumber
-    };
-    simulationMessages.push(businessCycleMessage);
-    yield businessCycleMessage;
-
+    
     // Add system message with new scenario
     const systemMessage: Message = {
       role: 'system',
