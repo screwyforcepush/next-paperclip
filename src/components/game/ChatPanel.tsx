@@ -87,6 +87,11 @@ const ChatPanel: React.FC = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2, ease: 'easeOut' }}
+                  onAnimationComplete={() => {
+                    if (index === elements.length - 1) {
+                      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
                 >
                   {element}
                 </motion.div>
@@ -97,7 +102,7 @@ const ChatPanel: React.FC = () => {
         {isSimulating && gameState.currentCycle && (
           <div className="flex items-center justify-center mt-4">
             <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
-            <span className="ml-4 text-blue-500">Simulating Cycle {gameState.currentCycle}...</span>
+            <span className="ml-4 text-blue-500">Simulating</span>
           </div>
         )}
         <div ref={messagesEndRef} />
