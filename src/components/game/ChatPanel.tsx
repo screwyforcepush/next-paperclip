@@ -119,6 +119,9 @@ const ChatPanel: React.FC = () => {
                 if (!isNaN(newCycle)) {
                   console.log('[ChatPanel] Updating current cycle to:', newCycle);
                   dispatch({ type: GameActionType.SetCurrentCycle, payload: newCycle });
+                  // Add business_cycle message
+                  const businessCycleMessage: Message = { role: 'business_cycle', content: newCycle.toString() };
+                  dispatch({ type: GameActionType.AddMessage, payload: businessCycleMessage });
                 } else {
                   console.error('[ChatPanel] Invalid business cycle number:', parsedMessage.content);
                 }
@@ -168,7 +171,7 @@ const ChatPanel: React.FC = () => {
               if (message.role === 'business_cycle') {
                 currentCycleNumber = parseInt(message.content, 10);
                 elements.push(
-                  <BusinessCycleHeader key={index} cycleNumber={currentCycleNumber} />
+                  <BusinessCycleHeader key={`cycle-${index}`} cycleNumber={currentCycleNumber} />
                 );
                 index++;
               } else if (message.role === 'simulation_group') {
@@ -184,7 +187,7 @@ const ChatPanel: React.FC = () => {
                 }
                 elements.push(
                   <SimulationAccordion
-                    key={index}
+                    key={`sim-${currentCycleNumber}-${index}`}
                     messages={simulationMessages}
                     cycleNumber={currentCycleNumber}
                     isSimulating={isSimulating}
@@ -192,7 +195,7 @@ const ChatPanel: React.FC = () => {
                 );
               } else {
                 elements.push(
-                  <MessageBubble key={index} message={message} />
+                  <MessageBubble key={`msg-${index}`} message={message} />
                 );
                 index++;
               }
