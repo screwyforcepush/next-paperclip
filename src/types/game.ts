@@ -26,9 +26,10 @@ export interface GameState {
 // ... rest of the code ...
 
 export interface Message {
-  role: 'user' | 'assistant' | 'system' | 'business_cycle' | 'simulation_group' | 'simulation';
+  role: string;
   content: string;
-  name?: string; // Add this line
+  name?: string;
+  cycleNumber?: number; // Include this property
 }
 
 /**

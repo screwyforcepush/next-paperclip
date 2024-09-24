@@ -1,4 +1,4 @@
-import { GameState, Message, KPI } from '@/types/game'; // Add KPI to imports
+import { GameState, Message, KPI } from '@/types/game';
 import { generateScenario } from './scenarioGenerator';
 import { calculateNewKPIs } from './kpiCalculator';
 import { runSimulation } from '../agents/agentManager';
@@ -12,11 +12,20 @@ type GeneratorMessage =
   | { role: 'system'; content: string };
 
 export class BusinessEngine {
-  static async *runBusinessCycle(gameState: GameState, userInput: string): AsyncGenerator<GeneratorMessage, GameState> {
+  static async *runBusinessCycle(
+    gameState: GameState,
+    userInput: string
+  ): AsyncGenerator<GeneratorMessage, GameState> {
     const simulationMessages: Message[] = [];
-    
-    // Add simulation group message
-    const simulationGroupMessage: Message = { role: 'simulation_group', content: "running simulation" };
+
+    const newCycle = gameState.currentCycle + 1; // Calculate the new cycle number
+
+    // Add simulation group message with cycleNumber
+    const simulationGroupMessage: Message = {
+      role: 'simulation_group',
+      content: "running simulation",
+      cycleNumber: newCycle, // Assign cycleNumber
+    };
     simulationMessages.push(simulationGroupMessage);
     yield simulationGroupMessage;
 
@@ -29,6 +38,7 @@ export class BusinessEngine {
 
     console.log('[BusinessEngine] Entering simulation loop');
     for await (const message of simulationGenerator) {
+      message.cycleNumber = newCycle; // Assign cycleNumber
       simulationMessages.push(message as Message);
       yield message as Message;
     }
@@ -50,9 +60,8 @@ export class BusinessEngine {
     const currentKPIs = gameState.kpiHistory[gameState.kpiHistory.length - 1];
     const newKPIs = await calculateNewKPIs(currentKPIs, impactAnalysis.content);
     console.log('[BusinessEngine] New KPIs:', JSON.stringify(newKPIs, null, 2));
-    yield { type: 'kpis', content: newKPIs };;
+    yield { type: 'kpis', content: newKPIs };
 
-    const newCycle = gameState.currentCycle + 1;
     console.log(`[BusinessEngine] New cycle: ${newCycle}`);
 
     console.log('[BusinessEngine] Generating new scenario');
@@ -66,12 +75,20 @@ export class BusinessEngine {
     }
 
     // Add business cycle message
-    const businessCycleMessage: Message = { role: 'business_cycle', content: newCycle.toString() };
+    const businessCycleMessage: Message = {
+      role: 'business_cycle',
+      content: newCycle.toString(),
+      cycleNumber: newCycle, // Assign cycleNumber
+    };
     simulationMessages.push(businessCycleMessage);
     yield businessCycleMessage;
 
     // Add system message with new scenario
-    const systemMessage: Message = { role: 'system', content: newScenario };
+    const systemMessage: Message = {
+      role: 'system',
+      content: newScenario,
+      cycleNumber: newCycle, // Assign cycleNumber
+    };
     simulationMessages.push(systemMessage);
     yield systemMessage;
 

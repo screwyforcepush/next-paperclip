@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Message } from './MessageBubble';
+import { Message } from '@/types/game';
 import MessageBubble from './MessageBubble';
 
 interface SimulationAccordionProps {

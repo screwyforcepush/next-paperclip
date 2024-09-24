@@ -106,31 +106,32 @@ const ChatPanel: React.FC = () => {
         for (const message of messages) {
           try {
             const parsedMessage = JSON.parse(message);
+
+            // Assign cycleNumber if it's part of the message
+            if ('cycleNumber' in parsedMessage && parsedMessage.cycleNumber) {
+              parsedMessage.cycleNumber = parsedMessage.cycleNumber;
+            }
+
             if (parsedMessage.type === 'kpis') {
               console.log('[ChatPanel] Received KPI update:', parsedMessage.content);
               dispatch({ type: GameActionType.UpdateKPI, payload: parsedMessage.content });
-            } else {
-              // Handle simulation messages
-              if (parsedMessage.role === 'simulation') {
-                console.log('[ChatPanel] Received simulation message:', parsedMessage);
-                dispatch({ type: GameActionType.AddMessage, payload: parsedMessage });
-              } else if (parsedMessage.role === 'business_cycle') {
-                const newCycle = parseInt(parsedMessage.content, 10);
-                if (!isNaN(newCycle)) {
-                  console.log('[ChatPanel] Updating current cycle to:', newCycle);
-                  dispatch({ type: GameActionType.SetCurrentCycle, payload: newCycle });
-                  // Add business_cycle message
-                  const businessCycleMessage: Message = { role: 'business_cycle', content: newCycle.toString() };
-                  dispatch({ type: GameActionType.AddMessage, payload: businessCycleMessage });
-                } else {
-                  console.error('[ChatPanel] Invalid business cycle number:', parsedMessage.content);
-                }
-                // Simulation ends when business_cycle message is received
-                setIsSimulating(false);
+            } else if (parsedMessage.role === 'business_cycle') {
+              const newCycle = parseInt(parsedMessage.content, 10);
+              if (!isNaN(newCycle)) {
+                console.log('[ChatPanel] Updating current cycle to:', newCycle);
+                dispatch({ type: GameActionType.SetCurrentCycle, payload: newCycle });
+                // Add business_cycle message
+                const businessCycleMessage: Message = { role: 'business_cycle', content: newCycle.toString() };
+                dispatch({ type: GameActionType.AddMessage, payload: businessCycleMessage });
               } else {
-                // Handle other message types
-                dispatch({ type: GameActionType.AddMessage, payload: parsedMessage });
+                console.error('[ChatPanel] Invalid business cycle number:', parsedMessage.content);
               }
+              // Simulation ends when business_cycle message is received
+              setIsSimulating(false);
+            } else {
+              // Handle other message types
+              console.log('[ChatPanel] Received message:', parsedMessage);
+              dispatch({ type: GameActionType.AddMessage, payload: parsedMessage });
             }
           } catch (error) {
             console.error('[ChatPanel] Error parsing message:', error, 'Raw message:', message);
@@ -162,19 +163,19 @@ const ChatPanel: React.FC = () => {
             const elements = [];
             const messages = gameState.messages;
             let index = 0;
-            let currentCycleNumber = 0;
 
             while (index < messages.length) {
               const message = messages[index];
               console.log(`[ChatPanel] Rendering message ${index}:`, message);
 
               if (message.role === 'business_cycle') {
-                currentCycleNumber = parseInt(message.content, 10);
+                const currentCycleNumber = parseInt(message.content, 10);
                 elements.push(
                   <BusinessCycleHeader key={`cycle-${index}`} cycleNumber={currentCycleNumber} />
                 );
                 index++;
               } else if (message.role === 'simulation_group') {
+                const cycleNumber = message.cycleNumber || 0; // Get cycleNumber from message
                 // Start collecting simulation messages
                 const simulationMessages = [];
                 index++; // Skip the 'simulation_group' message
@@ -187,12 +188,18 @@ const ChatPanel: React.FC = () => {
                 }
                 elements.push(
                   <SimulationAccordion
-                    key={`sim-${currentCycleNumber}-${index}`}
+                    key={`sim-${cycleNumber}-${index}`}
                     messages={simulationMessages}
-                    cycleNumber={currentCycleNumber}
+                    cycleNumber={cycleNumber} // Pass cycleNumber prop
                     isSimulating={isSimulating}
                   />
                 );
+              } else if (message.role === 'system') {
+                // Display the new scenario message
+                elements.push(
+                  <MessageBubble key={`msg-${index}`} message={message} />
+                );
+                index++;
               } else {
                 elements.push(
                   <MessageBubble key={`msg-${index}`} message={message} />
