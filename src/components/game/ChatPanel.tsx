@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useLayoutEffect } from 'react';
+import React, { useState, useRef, useLayoutEffect, useMemo } from 'react';
 import { useGameState } from '@/hooks/useGameState'; // Import the useGameState hook
 import { useGameStateLoader } from '@/hooks/useGameStateLoader';
 import { useMessageHandler } from '@/hooks/useMessageHandler'; // Added import for useMessageHandler
@@ -16,6 +16,21 @@ const ChatPanel: React.FC = () => {
 
   const { loading /*, handleNewGame */ } = useGameStateLoader(); // Removed handleNewGame
   const { handleSubmit, isSimulating } = useMessageHandler(input, setInput); // Removed currentCycle from destructure
+
+  // Group simulation messages by cycleNumber
+  const groupedSimulations = useMemo(() => {
+    const groups: Record<number, Message[]> = {};
+    gameState.messages.forEach((message) => {
+      if (message.role === 'simulation') {
+        const cycle = message.cycleNumber || 0;
+        if (!groups[cycle]) {
+          groups[cycle] = [];
+        }
+        groups[cycle].push(message);
+      }
+    });
+    return groups;
+  }, [gameState.messages]);
 
   useLayoutEffect(() => { // Changed from useEffect to useLayoutEffect
     console.log('[ChatPanel] Game state updated:', gameState);
@@ -52,26 +67,17 @@ const ChatPanel: React.FC = () => {
                   );
                   index++;
                 } else if (message.role === 'simulation_group') {
-                  const cycleNumber = message.cycleNumber || 0;
-                  const simulationMessages = [];
-                  index++;
-                  while (index < messages.length && messages[index].role === 'simulation') {
-                    simulationMessages.push(messages[index]);
-                    index++;
-                  }
+                  const cycleNumber = messages[index + 1]?.cycleNumber || 0; // Assuming cycleNumber is in the next message
+                  const simulationMessages = groupedSimulations[cycleNumber] || [];
                   elements.push(
                     <SimulationAccordion
-                      key={`sim-${cycleNumber}-${index}`}
+                      key={`sim-${cycleNumber}`}
                       messages={simulationMessages}
                       cycleNumber={cycleNumber}
-                      isSimulating={isSimulating && cycleNumber === gameState.currentCycle} // Only open if it's the current cycle
+                      isSimulating={isSimulating && cycleNumber === gameState.currentCycle}
                     />
                   );
-                } else if (message.role === 'system') {
-                  elements.push(
-                    <MessageBubble key={`msg-${index}`} message={message} />
-                  );
-                  index++;
+                  index += simulationMessages.length + 1; // Skip the group header and its messages
                 } else {
                   elements.push(
                     <MessageBubble key={`msg-${index}`} message={message} />

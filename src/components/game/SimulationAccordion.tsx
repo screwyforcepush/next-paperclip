@@ -21,7 +21,7 @@ const SimulationAccordion: React.FC<SimulationAccordionProps> = ({ messages, cyc
       setIsOpen(false);
       console.log(`[SimulationAccordion] Closing accordion for cycle ${cycleNumber}`);
     }
-  }, [isSimulating]);
+  }, [isSimulating, cycleNumber]); // Added cycleNumber to dependencies
 
   useEffect(() => {
     if (isOpen) {
@@ -42,7 +42,7 @@ const SimulationAccordion: React.FC<SimulationAccordionProps> = ({ messages, cyc
       >
         <div className="flex-grow border-t border-gray-600"></div>
         <div className="px-4 text-gray-200 text-sm font-medium">
-          Simulation {cycleNumber} {isOpen ? '▼' : '▶'}
+          Simulation {isOpen ? '▼' : '▶'}
         </div>
         <div className="flex-grow border-t border-gray-600"></div>
       </div>
