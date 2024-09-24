@@ -1,151 +1,25 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { useGameState } from '@/contexts/GameStateContext';
+import React, { useState, useRef, useEffect } from 'react';
+import { useGameState } from '@/hooks/useGameState'; // Import the useGameState hook
+import { useGameStateLoader } from '@/hooks/useGameStateLoader';
+import { useMessageHandler } from '@/hooks/useMessageHandler';
 import MessageBubble from './MessageBubble';
 import BusinessCycleHeader from './BusinessCycleHeader';
-import { startNewGame } from '@/lib/utils/api';
-import { Message } from '@/types/game';
-import { loadGameState, saveGameState } from '@/lib/utils/localStorage';
-import { GameActionType } from '@/contexts/gameActionTypes';
 import SimulationAccordion from './SimulationAccordion';
 
 const ChatPanel: React.FC = () => {
-  const { gameState, dispatch } = useGameState();
-  const [loading, setLoading] = useState(true);
+  const { gameState } = useGameState();
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [isSimulating, setIsSimulating] = useState(false);
 
-  useEffect(() => {
-    console.log('[ChatPanel] Component mounted, current gameState:', gameState);
-    if (gameState.messages.length === 0) {
-      const savedState = loadGameState();
-      if (savedState) {
-        console.log('[ChatPanel] Loaded game state from local storage:', savedState);
-        dispatch({ type: GameActionType.SetGameState, payload: savedState });
-      } else {
-        console.log('[ChatPanel] No saved state found, starting new game');
-        handleNewGame();
-      }
-    }
-    setLoading(false);
-  }, []);
+  const { loading, handleNewGame } = useGameStateLoader();
+  const { handleSubmit, isSimulating } = useMessageHandler(input, setInput);
 
   useEffect(() => {
     console.log('[ChatPanel] Game state updated:', gameState);
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [gameState]);
-
-  // Add useEffect to monitor gameState.messages
-  useEffect(() => {
-    const lastMessage = gameState.messages[gameState.messages.length - 1];
-    if (lastMessage) {
-      if (lastMessage.role === 'business_cycle') {
-        console.log('[ChatPanel] Simulation ended');
-        setIsSimulating(false);
-      }
-    }
-  }, [gameState.messages]);
-
-  const handleNewGame = async () => {
-    setLoading(true);
-    try {
-      console.log('[ChatPanel] Starting new game');
-      const newGameState = await startNewGame();
-      console.log('[ChatPanel] New game state received:', newGameState);
-      dispatch({ type: GameActionType.SetGameState, payload: newGameState });
-      saveGameState(newGameState);
-      console.log('[ChatPanel] New game state saved to local storage');
-    } catch (error) {
-      console.error('[ChatPanel] Failed to start new game:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const userInput = input.trim();
-    if (!userInput || !gameState) return;
-
-    console.log('[ChatPanel] Submitting user input:', userInput);
-    const userMessage: Message = { role: 'user', content: userInput };
-    dispatch({ type: GameActionType.AddMessage, payload: userMessage });
-    setInput('');
-
-    setIsSimulating(true); // Set simulating to true when user submits input
-
-    try {
-      console.log('[ChatPanel] Simulating business cycle');
-
-      const response = await fetch('/api/simulate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userInput, gameState }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Server error: ${response.statusText}`);
-      }
-
-      if (!response.body) {
-        throw new Error('Response body is null');
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        
-        const chunk = decoder.decode(value);
-        const messages = chunk.split('\n').filter(Boolean);
-
-        for (const message of messages) {
-          try {
-            const parsedMessage = JSON.parse(message);
-
-            // Assign cycleNumber if it's part of the message
-            if ('cycleNumber' in parsedMessage && parsedMessage.cycleNumber) {
-              parsedMessage.cycleNumber = parsedMessage.cycleNumber;
-            }
-
-            if (parsedMessage.type === 'kpis') {
-              console.log('[ChatPanel] Received KPI update:', parsedMessage.content);
-              dispatch({ type: GameActionType.UpdateKPI, payload: parsedMessage.content });
-            } else if (parsedMessage.role === 'business_cycle') {
-              const newCycle = parseInt(parsedMessage.content, 10);
-              if (!isNaN(newCycle)) {
-                console.log('[ChatPanel] Updating current cycle to:', newCycle);
-                dispatch({ type: GameActionType.SetCurrentCycle, payload: newCycle });
-                // Add business_cycle message
-                const businessCycleMessage: Message = { role: 'business_cycle', content: newCycle.toString() };
-                dispatch({ type: GameActionType.AddMessage, payload: businessCycleMessage });
-              } else {
-                console.error('[ChatPanel] Invalid business cycle number:', parsedMessage.content);
-              }
-              // Simulation ends when business_cycle message is received
-              setIsSimulating(false);
-            } else {
-              // Handle other message types
-              console.log('[ChatPanel] Received message:', parsedMessage);
-              dispatch({ type: GameActionType.AddMessage, payload: parsedMessage });
-            }
-          } catch (error) {
-            console.error('[ChatPanel] Error parsing message:', error, 'Raw message:', message);
-          }
-        }
-      }
-
-      console.log('[ChatPanel] Business cycle simulation complete');
-    } catch (error) {
-      console.error('[ChatPanel] Error simulating business cycle:', error);
-      // Optionally provide user feedback here
-      setIsSimulating(false); // Ensure isSimulating is reset on error
-    }
-  };
 
   console.log('[ChatPanel] Rendering. Current game state:', gameState);
 
@@ -175,14 +49,10 @@ const ChatPanel: React.FC = () => {
                 );
                 index++;
               } else if (message.role === 'simulation_group') {
-                const cycleNumber = message.cycleNumber || 0; // Get cycleNumber from message
-                // Start collecting simulation messages
+                const cycleNumber = message.cycleNumber || 0;
                 const simulationMessages = [];
-                index++; // Skip the 'simulation_group' message
-                while (
-                  index < messages.length &&
-                  messages[index].role === 'simulation'
-                ) {
+                index++;
+                while (index < messages.length && messages[index].role === 'simulation') {
                   simulationMessages.push(messages[index]);
                   index++;
                 }
@@ -190,12 +60,11 @@ const ChatPanel: React.FC = () => {
                   <SimulationAccordion
                     key={`sim-${cycleNumber}-${index}`}
                     messages={simulationMessages}
-                    cycleNumber={cycleNumber} // Pass cycleNumber prop
+                    cycleNumber={cycleNumber}
                     isSimulating={isSimulating}
                   />
                 );
               } else if (message.role === 'system') {
-                // Display the new scenario message
                 elements.push(
                   <MessageBubble key={`msg-${index}`} message={message} />
                 );
@@ -231,7 +100,7 @@ const ChatPanel: React.FC = () => {
           <button
             type="submit"
             className="bg-blue-500 text-white px-4 py-2 rounded-r hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            disabled={isSimulating} // Disable send button while simulating
+            disabled={isSimulating}
           >
             Send
           </button>
