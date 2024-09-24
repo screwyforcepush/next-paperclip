@@ -1,16 +1,27 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { GameState, Message, KPIState } from '@/types/game';
 import { loadGameState, saveGameState } from '@/lib/utils/localStorage';
+import { Logger } from '@/lib/utils/logger';
+import { GameActionType } from './gameActionTypes';
+
+export enum GameActionType {
+  UpdateKPI = 'UPDATE_KPI',
+  AddMessage = 'ADD_MESSAGE',
+  SetCurrentCycle = 'SET_CURRENT_CYCLE',
+  SetCurrentSituation = 'SET_CURRENT_SITUATION',
+  ResetGame = 'RESET_GAME',
+  SetGameState = 'SET_GAME_STATE',
+}
 
 type Action =
-  | { type: 'UPDATE_KPI'; payload: KPIState }
-  | { type: 'ADD_MESSAGE'; payload: Message }
-  | { type: 'SET_CURRENT_CYCLE'; payload: number }
-  | { type: 'SET_CURRENT_SITUATION'; payload: string }
-  | { type: 'RESET_GAME' }
-  | { type: 'SET_GAME_STATE'; payload: GameState };
+  | { type: GameActionType.UpdateKPI; payload: KPIState }
+  | { type: GameActionType.AddMessage; payload: Message }
+  | { type: GameActionType.SetCurrentCycle; payload: number }
+  | { type: GameActionType.SetCurrentSituation; payload: string }
+  | { type: GameActionType.ResetGame }
+  | { type: GameActionType.SetGameState; payload: GameState };
 
 const initialState: GameState = {
   currentCycle: 1,
@@ -20,7 +31,7 @@ const initialState: GameState = {
 };
 
 const gameReducer = (state: GameState, action: Action): GameState => {
-  console.log('[GameStateContext] Dispatching action:', action);
+  Logger.info('Dispatching action:', action);
   switch (action.type) {
     case 'UPDATE_KPI':
       return {
@@ -58,27 +69,37 @@ interface GameStateContextType {
 
 const GameStateContext = createContext<GameStateContextType | undefined>(undefined);
 
-export function GameStateProvider({ children }: { children: ReactNode }) {
-  const [gameState, dispatch] = useReducer(gameReducer, initialState);
-
-  useEffect(() => {
+const initializer = (): GameState => {
+  try {
     const savedState = loadGameState();
     if (savedState) {
-      console.log('[GameStateContext] Loading saved state:', savedState);
-      dispatch({ type: 'SET_GAME_STATE', payload: savedState });
+      console.log('[GameStateContext] Initializing with saved state:', savedState);
+      return savedState;
     } else {
       console.log('[GameStateContext] No saved state found, using initial state');
+      return initialState;
     }
-  }, []);
+  } catch (error) {
+    console.error('Error during state initialization:', error);
+    return initialState;
+  }
+};
+
+export function GameStateProvider({ children }: { children: ReactNode }) {
+  const [gameState, dispatch] = useReducer(gameReducer, initialState, initializer);
 
   useEffect(() => {
-    if (gameState !== initialState) {
-      console.log('[GameStateContext] Saving game state:', gameState);
-      saveGameState(gameState);
+    try {
+      if (gameState !== initialState) {
+        console.log('[GameStateContext] Saving game state:', gameState);
+        saveGameState(gameState);
+      }
+    } catch (error) {
+      console.error('Error saving game state:', error);
     }
   }, [gameState]);
 
-  console.log('[GameStateContext] Current game state:', gameState);
+  Logger.info('Current game state:', gameState);
 
   return (
     <GameStateContext.Provider value={{ gameState, dispatch }}>

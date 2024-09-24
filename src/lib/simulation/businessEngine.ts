@@ -70,16 +70,5 @@ export class BusinessEngine {
     simulationMessages.push(systemMessage);
     yield systemMessage;
 
-    // Removed because it messes up the game state. best practice would be to return an accurate game state.
-    // const updatedGameState: GameState = {
-    //   ...gameState,
-    //   currentCycle: newCycle,
-    //   kpiHistory: [...gameState.kpiHistory, newKPIs],
-    //   messages: [...gameState.messages, ...simulationMessages],
-    //   currentSituation: newScenario,
-    // };
-
-    // console.log('[BusinessEngine] Updated game state:', updatedGameState);
-    // yield { type: 'gameState', content: updatedGameState };
   }
 }

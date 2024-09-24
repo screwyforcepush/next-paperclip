@@ -7,6 +7,7 @@ import BusinessCycleHeader from './BusinessCycleHeader';
 import { startNewGame } from '@/lib/utils/api';
 import { Message } from '@/types/game';
 import { loadGameState, saveGameState } from '@/lib/utils/localStorage';
+import { GameActionType } from '@/contexts/GameStateContext';
 
 const ChatPanel: React.FC = () => {
   const { gameState, dispatch } = useGameState();
@@ -56,7 +57,7 @@ const ChatPanel: React.FC = () => {
 
     console.log('[ChatPanel] Submitting user input:', input);
     const userMessage: Message = { role: 'user', content: input.trim() };
-    dispatch({ type: 'ADD_MESSAGE', payload: userMessage });
+    dispatch({ type: GameActionType.AddMessage, payload: userMessage });
     setInput('');
 
     try {
@@ -86,16 +87,20 @@ const ChatPanel: React.FC = () => {
             const parsedMessage = JSON.parse(message);
             if (parsedMessage.type === 'kpis') {
               console.log('[ChatPanel] Received KPI update:', parsedMessage.content);
-              dispatch({ type: 'UPDATE_KPI', payload: parsedMessage.content });
-            } else if (parsedMessage.type === 'gameState') {
-              console.log('[ChatPanel] Received new game state:', parsedMessage.content);
-              if (typeof parsedMessage.content === 'object') {
-                dispatch({ type: 'SET_GAME_STATE', payload: parsedMessage.content });
-              } else {
-                console.error('[ChatPanel] Received invalid game state:', parsedMessage.content);
-              }
+              dispatch({ type: GameActionType.UpdateKPI, payload: parsedMessage.content });
             } else {
-              dispatch({ type: 'ADD_MESSAGE', payload: parsedMessage });
+              dispatch({ type: GameActionType.AddMessage, payload: parsedMessage });
+              
+              // Handle business cycle update
+              if (parsedMessage.role === 'business_cycle') {
+                const newCycle = parseInt(parsedMessage.content, 10);
+                if (!isNaN(newCycle)) {
+                  console.log('[ChatPanel] Updating current cycle to:', newCycle);
+                  dispatch({ type: GameActionType.SetCurrentCycle, payload: newCycle });
+                } else {
+                  console.error('[ChatPanel] Invalid business cycle number:', parsedMessage.content);
+                }
+              }
             }
           } catch (error) {
             console.error('[ChatPanel] Error parsing message:', error, 'Raw message:', message);
