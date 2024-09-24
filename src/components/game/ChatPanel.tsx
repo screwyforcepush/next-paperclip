@@ -8,6 +8,7 @@ import { startNewGame } from '@/lib/utils/api';
 import { Message } from '@/types/game';
 import { loadGameState, saveGameState } from '@/lib/utils/localStorage';
 import { GameActionType } from '@/contexts/gameActionTypes';
+import SimulationAccordion from './SimulationAccordion';
 
 const ChatPanel: React.FC = () => {
   const { gameState, dispatch } = useGameState();
@@ -136,18 +137,50 @@ const ChatPanel: React.FC = () => {
         ) : gameState.messages.length === 0 ? (
           <div className="flex items-center justify-center h-full text-red-500">No messages yet. Start a new game or provide advice.</div>
         ) : (
-          gameState.messages.map((message, index) => {
-            console.log(`[ChatPanel] Rendering message ${index}:`, message);
-            return (
-              <React.Fragment key={index}>
-                {message.role === 'business_cycle' ? (
-                  <BusinessCycleHeader cycleNumber={parseInt(message.content)} />
-                ) : (
-                  <MessageBubble message={message} />
-                )}
-              </React.Fragment>
-            );
-          })
+          (() => {
+            const elements = [];
+            const messages = gameState.messages;
+            let index = 0;
+            let currentCycleNumber = 0;
+
+            while (index < messages.length) {
+              const message = messages[index];
+              console.log(`[ChatPanel] Rendering message ${index}:`, message);
+
+              if (message.role === 'business_cycle') {
+                currentCycleNumber = parseInt(message.content, 10);
+                elements.push(
+                  <BusinessCycleHeader key={index} cycleNumber={currentCycleNumber} />
+                );
+                index++;
+              } else if (message.role === 'simulation_group') {
+                // Start collecting simulation messages
+                const simulationMessages = [];
+                index++; // Skip the 'simulation_group' message
+                while (
+                  index < messages.length &&
+                  messages[index].role === 'simulation'
+                ) {
+                  simulationMessages.push(messages[index]);
+                  index++;
+                }
+                elements.push(
+                  <SimulationAccordion
+                    key={index}
+                    messages={simulationMessages}
+                    cycleNumber={currentCycleNumber}
+                  />
+                );
+              } else {
+                elements.push(
+                  <MessageBubble key={index} message={message} />
+                );
+                index++;
+              }
+            }
+
+            return elements;
+          })()
         )}
         <div ref={messagesEndRef} />
       </div>

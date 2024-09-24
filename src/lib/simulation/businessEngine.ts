@@ -58,9 +58,7 @@ export class BusinessEngine {
     console.log('[BusinessEngine] Generating new scenario');
     let newScenario: string;
     try {
-      newScenario = await generateScenario({
-        impactAnalysis,
-      });
+      newScenario = await generateScenario(impactAnalysis.content);
       console.log('[BusinessEngine] New scenario:', newScenario);
     } catch (error) {
       console.error('[BusinessEngine] Error generating scenario:', error);
