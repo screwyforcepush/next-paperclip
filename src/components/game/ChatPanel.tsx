@@ -15,6 +15,7 @@ const ChatPanel: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isSimulating, setIsSimulating] = useState(false);
 
   useEffect(() => {
     console.log('[ChatPanel] Component mounted, current gameState:', gameState);
@@ -35,6 +36,17 @@ const ChatPanel: React.FC = () => {
     console.log('[ChatPanel] Game state updated:', gameState);
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [gameState]);
+
+  // Add useEffect to monitor gameState.messages
+  useEffect(() => {
+    const lastMessage = gameState.messages[gameState.messages.length - 1];
+    if (lastMessage) {
+      if (lastMessage.role === 'business_cycle') {
+        console.log('[ChatPanel] Simulation ended');
+        setIsSimulating(false);
+      }
+    }
+  }, [gameState.messages]);
 
   const handleNewGame = async () => {
     setLoading(true);
@@ -62,8 +74,11 @@ const ChatPanel: React.FC = () => {
     dispatch({ type: GameActionType.AddMessage, payload: userMessage });
     setInput('');
 
+    setIsSimulating(true); // Set simulating to true when user submits input
+
     try {
       console.log('[ChatPanel] Simulating business cycle');
+
       const response = await fetch('/api/simulate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -107,6 +122,8 @@ const ChatPanel: React.FC = () => {
                 } else {
                   console.error('[ChatPanel] Invalid business cycle number:', parsedMessage.content);
                 }
+                // Simulation ends when business_cycle message is received
+                setIsSimulating(false);
               } else {
                 // Handle other message types
                 dispatch({ type: GameActionType.AddMessage, payload: parsedMessage });
@@ -122,6 +139,7 @@ const ChatPanel: React.FC = () => {
     } catch (error) {
       console.error('[ChatPanel] Error simulating business cycle:', error);
       // Optionally provide user feedback here
+      setIsSimulating(false); // Ensure isSimulating is reset on error
     }
   };
 
@@ -169,6 +187,7 @@ const ChatPanel: React.FC = () => {
                     key={index}
                     messages={simulationMessages}
                     cycleNumber={currentCycleNumber}
+                    isSimulating={isSimulating}
                   />
                 );
               } else {
@@ -181,6 +200,12 @@ const ChatPanel: React.FC = () => {
 
             return elements;
           })()
+        )}
+        {isSimulating && (
+          <div className="flex items-center justify-center mt-4">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+            <span className="ml-4 text-blue-500">Simulating...</span>
+          </div>
         )}
         <div ref={messagesEndRef} />
       </div>
@@ -196,6 +221,7 @@ const ChatPanel: React.FC = () => {
           <button
             type="submit"
             className="bg-blue-500 text-white px-4 py-2 rounded-r hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={isSimulating} // Disable send button while simulating
           >
             Send
           </button>
