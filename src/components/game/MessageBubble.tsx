@@ -9,6 +9,7 @@ interface MessageBubbleProps {
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
   const isUser = message.role === 'user';
+  const isSimulation = message.role === 'simulation';
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
@@ -19,6 +20,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
             : 'bg-gray-700 text-white'
         }`}
       >
+        {isSimulation && message.name && (
+          <p className="text-xs font-bold mb-1">{message.name}</p>
+        )}
         <p className="text-sm">{message.content}</p>
       </div>
     </div>

@@ -28,8 +28,7 @@ export interface GameState {
 export interface Message {
   role: 'user' | 'assistant' | 'system' | 'business_cycle' | 'simulation_group' | 'simulation';
   content: string;
-  name?: string;
-  type?: string; // Add this line
+  name?: string; // Add this line
 }
 
 /**

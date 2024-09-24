@@ -94,10 +94,11 @@ const ChatPanel: React.FC = () => {
               console.log('[ChatPanel] Received KPI update:', parsedMessage.content);
               dispatch({ type: GameActionType.UpdateKPI, payload: parsedMessage.content });
             } else {
-              dispatch({ type: GameActionType.AddMessage, payload: parsedMessage });
-              
-              // Handle business cycle update
-              if (parsedMessage.role === 'business_cycle') {
+              // Handle simulation messages
+              if (parsedMessage.role === 'simulation') {
+                console.log('[ChatPanel] Received simulation message:', parsedMessage);
+                dispatch({ type: GameActionType.AddMessage, payload: parsedMessage });
+              } else if (parsedMessage.role === 'business_cycle') {
                 const newCycle = parseInt(parsedMessage.content, 10);
                 if (!isNaN(newCycle)) {
                   console.log('[ChatPanel] Updating current cycle to:', newCycle);
@@ -105,6 +106,9 @@ const ChatPanel: React.FC = () => {
                 } else {
                   console.error('[ChatPanel] Invalid business cycle number:', parsedMessage.content);
                 }
+              } else {
+                // Handle other message types
+                dispatch({ type: GameActionType.AddMessage, payload: parsedMessage });
               }
             }
           } catch (error) {
