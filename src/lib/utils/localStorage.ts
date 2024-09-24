@@ -18,7 +18,7 @@ export function saveGameState(gameState: GameState): void {
   if (typeof window !== 'undefined') {
     const stateToSave = JSON.stringify(gameState);
     localStorage.setItem(GAME_STATE_KEY, stateToSave);
-    console.log('[localStorage] Saved game state to local storage:', stateToSave);
+    console.log('[localStorage] Saved game state to local storage');
   }
 }
 

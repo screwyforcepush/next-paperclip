@@ -84,7 +84,10 @@ const ChatPanel: React.FC = () => {
         for (const message of messages) {
           try {
             const parsedMessage = JSON.parse(message);
-            if (parsedMessage.type === 'gameState') {
+            if (parsedMessage.type === 'kpis') {
+              console.log('[ChatPanel] Received KPI update:', parsedMessage.content);
+              dispatch({ type: 'UPDATE_KPI', payload: parsedMessage.content });
+            } else if (parsedMessage.type === 'gameState') {
               console.log('[ChatPanel] Received new game state:', parsedMessage.content);
               if (typeof parsedMessage.content === 'object') {
                 dispatch({ type: 'SET_GAME_STATE', payload: parsedMessage.content });

@@ -5,7 +5,7 @@ import { runSimulation } from '../agents/agentManager';
 import { analyzeImpact } from './impactAnalysis';
 
 export class BusinessEngine {
-  static async *runBusinessCycle(gameState: GameState, userInput: string): AsyncGenerator<Message | { type: string; content: GameState }, GameState> {
+  static async *runBusinessCycle(gameState: GameState, userInput: string): AsyncGenerator<Message | { type: string; content: GameState | KPI }, GameState> {
     const simulationMessages: Message[] = [];
     
     // Add simulation group message
@@ -43,6 +43,7 @@ export class BusinessEngine {
     const currentKPIs = gameState.kpiHistory[gameState.kpiHistory.length - 1];
     const newKPIs = await calculateNewKPIs(currentKPIs, impactAnalysis.content);
     console.log('[BusinessEngine] New KPIs:', JSON.stringify(newKPIs, null, 2));
+    yield { type: 'kpis', content: newKPIs };;
 
     const newCycle = gameState.currentCycle + 1;
     console.log(`[BusinessEngine] New cycle: ${newCycle}`);
@@ -69,16 +70,16 @@ export class BusinessEngine {
     simulationMessages.push(systemMessage);
     yield systemMessage;
 
-    const updatedGameState: GameState = {
-      ...gameState,
-      currentCycle: newCycle,
-      kpiHistory: [...gameState.kpiHistory, newKPIs],
-      messages: [...gameState.messages, ...simulationMessages],
-      currentSituation: newScenario,
-    };
+    // Removed because it messes up the game state. best practice would be to return an accurate game state.
+    // const updatedGameState: GameState = {
+    //   ...gameState,
+    //   currentCycle: newCycle,
+    //   kpiHistory: [...gameState.kpiHistory, newKPIs],
+    //   messages: [...gameState.messages, ...simulationMessages],
+    //   currentSituation: newScenario,
+    // };
 
-    console.log('[BusinessEngine] Updated game state:', updatedGameState);
-    yield { type: 'gameState', content: updatedGameState };
-    return updatedGameState;
+    // console.log('[BusinessEngine] Updated game state:', updatedGameState);
+    // yield { type: 'gameState', content: updatedGameState };
   }
 }

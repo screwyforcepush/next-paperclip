@@ -22,15 +22,18 @@ export async function POST(req: NextRequest) {
         console.log("[simulate] Starting business cycle simulation");
         let messageCount = 0;
         for await (const message of BusinessEngine.runBusinessCycle(clientGameState, userInput)) {
-          messageCount++;
-          if ('type' in message && message.type === 'gameState') {
-            console.log(`[simulate] Received game state update:`, JSON.stringify(message.content, null, 2));
+
+          if (message.type === 'kpis') {
+            console.log("[simulate] Received KPIs:", JSON.stringify(message.content, null, 2));
             controller.enqueue(JSON.stringify(message) + '\n');
-          } else {
+            console.log("[simulate] Enqueued KPI update to stream");
+          }
+          else {
+            messageCount++;
             console.log(`[simulate] Received message ${messageCount} from BusinessEngine:`, JSON.stringify(message, null, 2));
             controller.enqueue(JSON.stringify(message) + '\n');
+            console.log(`[simulate] Enqueued message ${messageCount} to stream`);
           }
-          console.log(`[simulate] Enqueued message ${messageCount} to stream`);
         }
         console.log("[simulate] Business cycle simulation complete");
         console.log(`[simulate] Total messages processed: ${messageCount}`);
