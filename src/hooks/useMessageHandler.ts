@@ -26,6 +26,7 @@ export const useMessageHandler = (input: string, setInput: (input: string) => vo
     setInput('');
 
     setIsSimulating(true);
+    console.log('[useMessageHandler] isSimulating set to true');
 
     try {
       console.log('[useMessageHandler] Simulating business cycle');
@@ -72,10 +73,12 @@ export const useMessageHandler = (input: string, setInput: (input: string) => vo
                 dispatch({ type: GameActionType.SetCurrentCycle, payload: newCycle });
                 const businessCycleMessage: Message = { role: 'business_cycle', content: newCycle.toString() };
                 dispatch({ type: GameActionType.AddMessage, payload: businessCycleMessage });
+                console.log('[useMessageHandler] currentCycle set to:', newCycle);
               } else {
                 console.error('[useMessageHandler] Invalid business cycle number:', parsedMessage.content);
               }
               setIsSimulating(false);
+              console.log('[useMessageHandler] isSimulating set to false');
             } else {
               console.log('[useMessageHandler] Received message:', parsedMessage);
               dispatch({ type: GameActionType.AddMessage, payload: parsedMessage });
@@ -90,8 +93,9 @@ export const useMessageHandler = (input: string, setInput: (input: string) => vo
     } catch (error) {
       console.error('[useMessageHandler] Error simulating business cycle:', error);
       setIsSimulating(false);
+      console.log('[useMessageHandler] isSimulating set to false');
     }
   };
 
-  return { handleSubmit, isSimulating };
+  return { handleSubmit, isSimulating }; // Removed currentCycle from return
 };

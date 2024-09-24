@@ -3,7 +3,7 @@
 import React, { useState, useRef, useLayoutEffect } from 'react';
 import { useGameState } from '@/hooks/useGameState'; // Import the useGameState hook
 import { useGameStateLoader } from '@/hooks/useGameStateLoader';
-import { useMessageHandler } from '@/hooks/useMessageHandler';
+import { useMessageHandler } from '@/hooks/useMessageHandler'; // Added import for useMessageHandler
 import MessageBubble from './MessageBubble';
 import BusinessCycleHeader from './BusinessCycleHeader';
 import SimulationAccordion from './SimulationAccordion';
@@ -14,7 +14,7 @@ const ChatPanel: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { loading /*, handleNewGame */ } = useGameStateLoader(); // Removed handleNewGame
-  const { handleSubmit, isSimulating } = useMessageHandler(input, setInput);
+  const { handleSubmit, isSimulating } = useMessageHandler(input, setInput); // Removed currentCycle from destructure
 
   useLayoutEffect(() => { // Changed from useEffect to useLayoutEffect
     console.log('[ChatPanel] Game state updated:', gameState);
@@ -22,6 +22,7 @@ const ChatPanel: React.FC = () => {
   }, [gameState.messages, isSimulating]); // Added isSimulating to dependencies
 
   console.log('[ChatPanel] Rendering. Current game state:', gameState);
+  console.log('[ChatPanel] isSimulating:', isSimulating, 'currentCycle:', gameState.currentCycle); // Log currentCycle from gameState
 
   return (
     <div className="chat-panel flex flex-col h-full bg-gray-900 text-white">
@@ -40,7 +41,7 @@ const ChatPanel: React.FC = () => {
 
             while (index < messages.length) {
               const message = messages[index];
-              console.log(`[ChatPanel] Rendering message ${index}:`, message);
+              // console.log(`[ChatPanel] Rendering message ${index}:`, message);
 
               if (message.role === 'business_cycle') {
                 const currentCycleNumber = parseInt(message.content, 10);
@@ -61,7 +62,7 @@ const ChatPanel: React.FC = () => {
                     key={`sim-${cycleNumber}-${index}`}
                     messages={simulationMessages}
                     cycleNumber={cycleNumber}
-                    isSimulating={isSimulating}
+                    isSimulating={isSimulating && cycleNumber === gameState.currentCycle} // Only open if it's the current cycle
                   />
                 );
               } else if (message.role === 'system') {
@@ -80,10 +81,10 @@ const ChatPanel: React.FC = () => {
             return elements;
           })()
         )}
-        {isSimulating && (
+        {isSimulating && gameState.currentCycle && (
           <div className="flex items-center justify-center mt-4">
             <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
-            <span className="ml-4 text-blue-500">Simulating...</span>
+            <span className="ml-4 text-blue-500">Simulating Cycle {gameState.currentCycle}...</span>
           </div>
         )}
         <div ref={messagesEndRef} />

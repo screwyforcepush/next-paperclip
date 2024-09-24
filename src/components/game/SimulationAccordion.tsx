@@ -14,9 +14,11 @@ const SimulationAccordion: React.FC<SimulationAccordionProps> = ({ messages, cyc
 
   useEffect(() => {
     if (isSimulating) {
-      setIsOpen(true); // Open accordion when simulation starts
+      setIsOpen(true); // Open accordion when this simulation is running
+      console.log(`[SimulationAccordion] Opening accordion for cycle ${cycleNumber}`);
     } else {
       setIsOpen(false); // Close accordion when simulation ends
+      console.log(`[SimulationAccordion] Closing accordion for cycle ${cycleNumber}`);
     }
   }, [isSimulating]);
 
@@ -28,6 +30,7 @@ const SimulationAccordion: React.FC<SimulationAccordionProps> = ({ messages, cyc
 
   const toggleAccordion = () => {
     setIsOpen(!isOpen);
+    console.log(`[SimulationAccordion] Toggling accordion for cycle ${cycleNumber} to ${!isOpen}`);
   };
 
   return (

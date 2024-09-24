@@ -18,7 +18,7 @@ export class BusinessEngine {
   ): AsyncGenerator<GeneratorMessage, GameState> {
     const simulationMessages: Message[] = [];
 
-    const currentCycle = gameState.currentCycle; // Calculate the new cycle number
+    const currentCycle = gameState.currentCycle;
 
     // Add simulation group message with cycleNumber
     const simulationGroupMessage: Message = {
@@ -38,9 +38,13 @@ export class BusinessEngine {
 
     console.log('[BusinessEngine] Entering simulation loop');
     for await (const message of simulationGenerator) {
-      message.cycleNumber = currentCycle; // Assign cycleNumber
-      simulationMessages.push(message as Message);
-      yield message as Message;
+      const simulationMessage: Message = {
+        ...message,
+        cycleNumber: currentCycle, // Assign cycleNumber
+      };
+
+      simulationMessages.push(simulationMessage);
+      yield simulationMessage;
     }
     console.log('[BusinessEngine] Simulation loop complete');
     console.log('[BusinessEngine] Total simulation messages:', simulationMessages.length);
