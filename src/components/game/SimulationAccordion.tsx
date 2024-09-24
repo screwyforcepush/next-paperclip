@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Message } from '@/types/game';
 import MessageBubble from './MessageBubble';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SimulationAccordionProps {
   messages: Message[];
@@ -45,14 +46,25 @@ const SimulationAccordion: React.FC<SimulationAccordionProps> = ({ messages, cyc
         </div>
         <div className="flex-grow border-t border-gray-600"></div>
       </div>
-      {isOpen && (
-        <div className="bg-gray-700 p-4 rounded-b">
-          {messages.map((message, index) => (
-            <MessageBubble key={index} message={message} />
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="bg-gray-700 overflow-hidden rounded-b"
+          >
+            <div className="p-4">
+              {messages.map((message, index) => (
+                <MessageBubble key={index} message={message} />
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

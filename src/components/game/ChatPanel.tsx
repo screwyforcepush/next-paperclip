@@ -7,6 +7,7 @@ import { useMessageHandler } from '@/hooks/useMessageHandler'; // Added import f
 import MessageBubble from './MessageBubble';
 import BusinessCycleHeader from './BusinessCycleHeader';
 import SimulationAccordion from './SimulationAccordion';
+import { motion, AnimatePresence } from 'framer-motion'; // Added import for motion
 
 const ChatPanel: React.FC = () => {
   const { gameState } = useGameState();
@@ -34,52 +35,64 @@ const ChatPanel: React.FC = () => {
         ) : gameState.messages.length === 0 ? (
           <div className="flex items-center justify-center h-full text-red-500">No messages yet. Start a new game or provide advice.</div>
         ) : (
-          (() => {
-            const elements = [];
-            const messages = gameState.messages;
-            let index = 0;
+          <AnimatePresence initial={false}>
+            {(() => {
+              const elements = [];
+              const messages = gameState.messages;
+              let index = 0;
 
-            while (index < messages.length) {
-              const message = messages[index];
-              // console.log(`[ChatPanel] Rendering message ${index}:`, message);
+              while (index < messages.length) {
+                const message = messages[index];
+                // console.log(`[ChatPanel] Rendering message ${index}:`, message);
 
-              if (message.role === 'business_cycle') {
-                const currentCycleNumber = parseInt(message.content, 10);
-                elements.push(
-                  <BusinessCycleHeader key={`cycle-${index}`} cycleNumber={currentCycleNumber} />
-                );
-                index++;
-              } else if (message.role === 'simulation_group') {
-                const cycleNumber = message.cycleNumber || 0;
-                const simulationMessages = [];
-                index++;
-                while (index < messages.length && messages[index].role === 'simulation') {
-                  simulationMessages.push(messages[index]);
+                if (message.role === 'business_cycle') {
+                  const currentCycleNumber = parseInt(message.content, 10);
+                  elements.push(
+                    <BusinessCycleHeader key={`cycle-${index}`} cycleNumber={currentCycleNumber} />
+                  );
+                  index++;
+                } else if (message.role === 'simulation_group') {
+                  const cycleNumber = message.cycleNumber || 0;
+                  const simulationMessages = [];
+                  index++;
+                  while (index < messages.length && messages[index].role === 'simulation') {
+                    simulationMessages.push(messages[index]);
+                    index++;
+                  }
+                  elements.push(
+                    <SimulationAccordion
+                      key={`sim-${cycleNumber}-${index}`}
+                      messages={simulationMessages}
+                      cycleNumber={cycleNumber}
+                      isSimulating={isSimulating && cycleNumber === gameState.currentCycle} // Only open if it's the current cycle
+                    />
+                  );
+                } else if (message.role === 'system') {
+                  elements.push(
+                    <MessageBubble key={`msg-${index}`} message={message} />
+                  );
+                  index++;
+                } else {
+                  elements.push(
+                    <MessageBubble key={`msg-${index}`} message={message} />
+                  );
                   index++;
                 }
-                elements.push(
-                  <SimulationAccordion
-                    key={`sim-${cycleNumber}-${index}`}
-                    messages={simulationMessages}
-                    cycleNumber={cycleNumber}
-                    isSimulating={isSimulating && cycleNumber === gameState.currentCycle} // Only open if it's the current cycle
-                  />
-                );
-              } else if (message.role === 'system') {
-                elements.push(
-                  <MessageBubble key={`msg-${index}`} message={message} />
-                );
-                index++;
-              } else {
-                elements.push(
-                  <MessageBubble key={`msg-${index}`} message={message} />
-                );
-                index++;
               }
-            }
 
-            return elements;
-          })()
+              return elements.map((element, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                >
+                  {element}
+                </motion.div>
+              ));
+            })()}
+          </AnimatePresence>
         )}
         {isSimulating && gameState.currentCycle && (
           <div className="flex items-center justify-center mt-4">
@@ -95,12 +108,12 @@ const ChatPanel: React.FC = () => {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            className="flex-1 p-2 bg-gray-700 text-white border border-gray-600 rounded-l focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 p-2 bg-gray-700 text-white border border-gray-600 rounded-l focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 ease-in-out"
             placeholder="Type your advice..."
           />
           <button
             type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded-r hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="bg-blue-500 text-white px-4 py-2 rounded-r hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 ease-in-out"
             disabled={isSimulating}
           >
             Send
