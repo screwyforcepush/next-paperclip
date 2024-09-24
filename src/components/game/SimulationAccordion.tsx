@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Message } from '@/types/game';
 import MessageBubble from './MessageBubble';
 
@@ -10,6 +10,7 @@ interface SimulationAccordionProps {
 
 const SimulationAccordion: React.FC<SimulationAccordionProps> = ({ messages, cycleNumber, isSimulating }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isSimulating) {
@@ -18,6 +19,12 @@ const SimulationAccordion: React.FC<SimulationAccordionProps> = ({ messages, cyc
       setIsOpen(false); // Close accordion when simulation ends
     }
   }, [isSimulating]);
+
+  useEffect(() => {
+    if (isOpen) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, isOpen]);
 
   const toggleAccordion = () => {
     setIsOpen(!isOpen);
@@ -40,6 +47,7 @@ const SimulationAccordion: React.FC<SimulationAccordionProps> = ({ messages, cyc
           {messages.map((message, index) => (
             <MessageBubble key={index} message={message} />
           ))}
+          <div ref={messagesEndRef} />
         </div>
       )}
     </div>

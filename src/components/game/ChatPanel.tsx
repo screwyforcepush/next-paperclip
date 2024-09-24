@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useLayoutEffect } from 'react';
 import { useGameState } from '@/hooks/useGameState'; // Import the useGameState hook
 import { useGameStateLoader } from '@/hooks/useGameStateLoader';
 import { useMessageHandler } from '@/hooks/useMessageHandler';
@@ -13,13 +13,13 @@ const ChatPanel: React.FC = () => {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { loading, handleNewGame } = useGameStateLoader();
+  const { loading /*, handleNewGame */ } = useGameStateLoader(); // Removed handleNewGame
   const { handleSubmit, isSimulating } = useMessageHandler(input, setInput);
 
-  useEffect(() => {
+  useLayoutEffect(() => { // Changed from useEffect to useLayoutEffect
     console.log('[ChatPanel] Game state updated:', gameState);
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [gameState]);
+  }, [gameState.messages, isSimulating]); // Added isSimulating to dependencies
 
   console.log('[ChatPanel] Rendering. Current game state:', gameState);
 
