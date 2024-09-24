@@ -1,11 +1,18 @@
-import { GameState, Message } from '@/types/game';
+import { GameState, Message, KPI } from '@/types/game'; // Add KPI to imports
 import { generateScenario } from './scenarioGenerator';
 import { calculateNewKPIs } from './kpiCalculator';
 import { runSimulation } from '../agents/agentManager';
 import { analyzeImpact } from './impactAnalysis';
 
+// Define a type for generator messages
+type GeneratorMessage =
+  | Message
+  | { type: 'kpis'; content: KPI }
+  | { role: 'business_cycle'; content: string }
+  | { role: 'system'; content: string };
+
 export class BusinessEngine {
-  static async *runBusinessCycle(gameState: GameState, userInput: string): AsyncGenerator<Message | { type: string; content: GameState | KPI }, GameState> {
+  static async *runBusinessCycle(gameState: GameState, userInput: string): AsyncGenerator<GeneratorMessage, GameState> {
     const simulationMessages: Message[] = [];
     
     // Add simulation group message
@@ -70,5 +77,6 @@ export class BusinessEngine {
     simulationMessages.push(systemMessage);
     yield systemMessage;
 
+    return gameState; // Return the updated game state
   }
 }

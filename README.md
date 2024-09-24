@@ -9,10 +9,11 @@ A business simulation game where players act as consultants to a hypothetical pa
 - **Data Visualization**: Tremor
 - **Backend**: Next.js API Routes with Edge Runtime
 - **AI/ML**: LangChain, LangGraph
-- **State Management**: React Context API
+- **State Management**: React Context API (implemented in `GameStateContext.tsx`)
 - **Persistence**: Local Storage
 - **Linting**: ESLint
-- **Testing**: (Add testing frameworks if any)
+- **Testing**: Jest (or your preferred testing framework)
+- **Code Quality**: ESLint, Prettier
 
 ## Key Features
 
@@ -58,6 +59,37 @@ A business simulation game where players act as consultants to a hypothetical pa
 
    - Navigate to [http://localhost:3000](http://localhost:3000)
 
+## Development Setup
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Set up environment variables:
+   - Create a `.env.local` file in the root directory.
+   - Add your OpenAI API key:
+     ```
+     OPENAI_API_KEY=your_api_key_here
+     ```
+
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+4. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
+
+5. To run linting:
+   ```bash
+   npm run lint
+   ```
+
+6. To format code:
+   ```bash
+   npm run format
+   ```
+
 ## Project Structure
 ```
 project-root/
@@ -100,7 +132,7 @@ project-root/
 │   │       ├── api.ts
 │   │       ├── localStorage.ts
 │   │       └── openaiConfig.ts
-│   ├��─ types/
+│   ├─ types/
 │   │   └── game.d.ts
 │   └── app/
 │       └── globals.css
@@ -275,8 +307,8 @@ innovationIndex: number;
 
 ### **Impact Analysis**
 
-- Evaluates the proposed actions.
-- Highlights potential risks and uncertainties.
+- Evaluates the potential impact of the C-suite's proposed actions.
+- Provides a critique focusing on risks and uncertainties.
 
 ## API Routes and Interactions
 
@@ -330,7 +362,6 @@ innovationIndex: number;
 - **Lazy Loading**: Components and modules are loaded as needed.
 - **Memoization**: Expensive computations are memoized.
 - **Edge Functions**: API routes run on Edge Runtime for reduced latency.
-
 
 ## Key Components and Their Responsibilities
 

@@ -7,7 +7,7 @@ import BusinessCycleHeader from './BusinessCycleHeader';
 import { startNewGame } from '@/lib/utils/api';
 import { Message } from '@/types/game';
 import { loadGameState, saveGameState } from '@/lib/utils/localStorage';
-import { GameActionType } from '@/contexts/GameStateContext';
+import { GameActionType } from '@/contexts/gameActionTypes';
 
 const ChatPanel: React.FC = () => {
   const { gameState, dispatch } = useGameState();
@@ -21,7 +21,7 @@ const ChatPanel: React.FC = () => {
       const savedState = loadGameState();
       if (savedState) {
         console.log('[ChatPanel] Loaded game state from local storage:', savedState);
-        dispatch({ type: 'SET_GAME_STATE', payload: savedState });
+        dispatch({ type: GameActionType.SetGameState, payload: savedState });
       } else {
         console.log('[ChatPanel] No saved state found, starting new game');
         handleNewGame();
@@ -41,7 +41,7 @@ const ChatPanel: React.FC = () => {
       console.log('[ChatPanel] Starting new game');
       const newGameState = await startNewGame();
       console.log('[ChatPanel] New game state received:', newGameState);
-      dispatch({ type: 'SET_GAME_STATE', payload: newGameState });
+      dispatch({ type: GameActionType.SetGameState, payload: newGameState });
       saveGameState(newGameState);
       console.log('[ChatPanel] New game state saved to local storage');
     } catch (error) {
@@ -53,10 +53,11 @@ const ChatPanel: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || !gameState) return;
+    const userInput = input.trim();
+    if (!userInput || !gameState) return;
 
-    console.log('[ChatPanel] Submitting user input:', input);
-    const userMessage: Message = { role: 'user', content: input.trim() };
+    console.log('[ChatPanel] Submitting user input:', userInput);
+    const userMessage: Message = { role: 'user', content: userInput };
     dispatch({ type: GameActionType.AddMessage, payload: userMessage });
     setInput('');
 
@@ -65,8 +66,12 @@ const ChatPanel: React.FC = () => {
       const response = await fetch('/api/simulate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userInput: input, gameState }),
+        body: JSON.stringify({ userInput, gameState }),
       });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.statusText}`);
+      }
 
       if (!response.body) {
         throw new Error('Response body is null');
@@ -111,6 +116,7 @@ const ChatPanel: React.FC = () => {
       console.log('[ChatPanel] Business cycle simulation complete');
     } catch (error) {
       console.error('[ChatPanel] Error simulating business cycle:', error);
+      // Optionally provide user feedback here
     }
   };
 

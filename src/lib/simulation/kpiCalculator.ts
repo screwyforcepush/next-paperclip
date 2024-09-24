@@ -1,4 +1,4 @@
-import { KPI } from '@/types/game';
+import { KPI } from '@/types/game'; // Add this import
 import { getChatOpenAI } from '@/lib/utils/openaiConfig';
 import { PromptTemplate } from "@langchain/core/prompts";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
@@ -61,9 +61,11 @@ export async function calculateNewKPIs(currentKPIs: KPI, simulation: string): Pr
       format_instructions: outputParser.getFormatInstructions(),
     });
 
-    console.log("[calculateNewKPIs] AI response:", JSON.stringify(response, null, 2));
+    if (!kpiImpactSchema.safeParse(response).success) {
+      throw new Error('Invalid response format from AI model');
+    }
 
-    const newKPIs = adjustKPIs(currentKPIs, response);
+    const newKPIs = adjustKPIs(currentKPIs, response as KPI);
     console.log("[calculateNewKPIs] New KPIs calculated:", JSON.stringify(newKPIs, null, 2));
 
     return newKPIs;

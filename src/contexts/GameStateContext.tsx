@@ -1,19 +1,10 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { GameState, Message, KPIState } from '@/types/game';
 import { loadGameState, saveGameState } from '@/lib/utils/localStorage';
 import { Logger } from '@/lib/utils/logger';
 import { GameActionType } from './gameActionTypes';
-
-export enum GameActionType {
-  UpdateKPI = 'UPDATE_KPI',
-  AddMessage = 'ADD_MESSAGE',
-  SetCurrentCycle = 'SET_CURRENT_CYCLE',
-  SetCurrentSituation = 'SET_CURRENT_SITUATION',
-  ResetGame = 'RESET_GAME',
-  SetGameState = 'SET_GAME_STATE',
-}
 
 type Action =
   | { type: GameActionType.UpdateKPI; payload: KPIState }
@@ -33,29 +24,29 @@ const initialState: GameState = {
 const gameReducer = (state: GameState, action: Action): GameState => {
   Logger.info('Dispatching action:', action);
   switch (action.type) {
-    case 'UPDATE_KPI':
+    case GameActionType.UpdateKPI:
       return {
         ...state,
         kpiHistory: [...state.kpiHistory, action.payload],
       };
-    case 'ADD_MESSAGE':
+    case GameActionType.AddMessage:
       return {
         ...state,
         messages: [...state.messages, action.payload],
       };
-    case 'SET_CURRENT_CYCLE':
+    case GameActionType.SetCurrentCycle:
       return {
         ...state,
         currentCycle: action.payload,
       };
-    case 'SET_CURRENT_SITUATION':
+    case GameActionType.SetCurrentSituation:
       return {
         ...state,
         currentSituation: action.payload,
       };
-    case 'RESET_GAME':
+    case GameActionType.ResetGame:
       return initialState;
-    case 'SET_GAME_STATE':
+    case GameActionType.SetGameState:
       return typeof action.payload === 'string' ? JSON.parse(action.payload) : action.payload;
     default:
       return state;
@@ -115,3 +106,5 @@ export function useGameState() {
   }
   return context;
 }
+
+export { GameStateContext };

@@ -8,16 +8,16 @@ export async function startNewGame(): Promise<GameState> {
   try {
     clearGameState();
 
-    console.log('[api] Generating initial scenario');
-    const initialScenario = await fetch(`${API_BASE_URL}/api/generateScenario`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({}),
+    // Use NEXT_PUBLIC_API_BASE_URL for client-side code
+    const response = await fetch(`${API_BASE_URL}/api/generateScenario`, {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({}),
     });
 
-    const {scenario} = await initialScenario.json();
+    const {scenario} = await response.json();
     
     const newGameState: GameState = {
       currentCycle: 1,
