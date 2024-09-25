@@ -1,4 +1,4 @@
-import { StateGraph, END } from "@langchain/langgraph";
+import { StateGraph, END, START } from "@langchain/langgraph";
 import { Annotation } from "@langchain/langgraph";
 import { BaseMessage, AIMessage } from "@langchain/core/messages";
 import { ceoAgent } from "./ceoAgent";
@@ -27,7 +27,10 @@ const AgentState = Annotation.Root({
   }),
 });
 
-function routeAgent(state: typeof AgentState.State): "CEO" | "CTO" | "CFO" | "CMO" | "COO" | typeof END {
+// Define the type for node names
+type NodeNames = "CEO" | "CTO" | "CFO" | "CMO" | "COO";
+
+function routeAgent(state: typeof AgentState.State): NodeNames | typeof END {
 //   console.log("[routeAgent] Current state:", JSON.stringify(state, null, 2));
   
   if (state.completedAgents.length === 0) {
@@ -40,7 +43,7 @@ function routeAgent(state: typeof AgentState.State): "CEO" | "CTO" | "CFO" | "CM
     for (const role of cSuiteRoles) {
       if (!state.completedAgents.includes(role)) {
         console.log(`[routeAgent] Routing to ${role}`);
-        return role as "CTO" | "CFO" | "CMO" | "COO";
+        return role as NodeNames;
       }
     }
   }
@@ -62,7 +65,7 @@ const ceoNode = async (state: typeof AgentState.State) => {
     return {
       messages: [new AIMessage({ content: reponse_string, name: "CEO" })],
       ceoDecision: ceoResponse,
-      completedAgents: ["CEO"],
+      completedAgents: [...state.completedAgents, "CEO"],
     };
   } catch (error) {
     console.error("[ceoNode] Error in CEO node:", error);
@@ -70,26 +73,27 @@ const ceoNode = async (state: typeof AgentState.State) => {
   }
 };
 
-const createCSuiteNode = (role: string, agent: Function) => async (state: typeof AgentState.State) => {
-  console.log(`[${role}Node] Starting ${role} node`);
-  if (state.ceoDecision && state.ceoDecision.assignments[role]) {
-    const assignment = state.ceoDecision.assignments[role];
-    const response = await agent({ situation: assignment, messages: state.messages });
-    console.log(`[${role}Node] assignment ${assignment} ${role} response:`, response.messages[0].content);
-    return {
-      messages: [new AIMessage({ content: response.messages[0].content as string, name: role })],
-      completedAgents: [role],
-    };
-  }
-  return { messages: [], completedAgents: [] };
-};
+const createCSuiteNode = (role: NodeNames, agent: (params: any) => Promise<{ messages: AIMessage[] }>) => 
+  async (state: typeof AgentState.State) => {
+    console.log(`[${role}Node] Starting ${role} node`);
+    if (state.ceoDecision && state.ceoDecision.assignments[role]) {
+      const assignment = state.ceoDecision.assignments[role];
+      const response = await agent({ situation: assignment, messages: state.messages });
+      console.log(`[${role}Node] assignment ${assignment} ${role} response:`, response.messages[0].content);
+      return {
+        messages: [new AIMessage({ content: response.messages[0].content as string, name: role })],
+        completedAgents: [...state.completedAgents, role],
+      };
+    }
+    return { messages: [], completedAgents: state.completedAgents };
+  };
 
 export async function* runSimulation(situation: string, userAdvice: string) {
   console.log("[runSimulation] Starting simulation");
   console.log("[runSimulation] Situation:", situation);
   console.log("[runSimulation] User advice:", userAdvice);
 
-  const workflow = new StateGraph<typeof AgentState.State, "CEO" | "CTO" | "CFO" | "CMO" | "COO">(AgentState);
+  const workflow = new StateGraph(AgentState);
 
   console.log("[runSimulation] Adding nodes to workflow");
   workflow.addNode("CEO", ceoNode);
@@ -99,11 +103,11 @@ export async function* runSimulation(situation: string, userAdvice: string) {
   workflow.addNode("COO", createCSuiteNode("COO", cooAgent));
 
   console.log("[runSimulation] Adding edges to workflow");
-  workflow.addEdge("__start__", "CEO");
+  workflow.addEdge(START, "CEO");
   
   workflow.addConditionalEdges(
     "CEO",
-    routeAgent as (state: typeof AgentState.State) => "CTO" | "CFO" | "CMO" | "COO" | typeof END,
+    routeAgent,
     {
       CTO: "CTO",
       CFO: "CFO",
@@ -113,10 +117,10 @@ export async function* runSimulation(situation: string, userAdvice: string) {
     }
   );
   
-  for (const role of ["CTO", "CFO", "CMO", "COO"]) {
+  for (const role of ["CTO", "CFO", "CMO", "COO"] as NodeNames[]) {
     workflow.addConditionalEdges(
-      role as "CTO" | "CFO" | "CMO" | "COO",
-      routeAgent as (state: typeof AgentState.State) => "CTO" | "CFO" | "CMO" | "COO" | typeof END,
+      role,
+      routeAgent,
       {
         CTO: "CTO",
         CFO: "CFO",
@@ -148,7 +152,7 @@ export async function* runSimulation(situation: string, userAdvice: string) {
     //   console.log("[runSimulation] Received chunk:", JSON.stringify(chunk, null, 2));
       if (chunk.messages && chunk.messages.length > 0) {
         for (const message of chunk.messages) {
-          const messageKey = `${message.name}-${message.content}`;
+          const messageKey = `${message['name']}-${message['content']}`;
           if (!yieldedMessages.has(messageKey)) {
             console.log("[runSimulation] Yielding message:", message.name);
             yieldedMessages.add(messageKey);
