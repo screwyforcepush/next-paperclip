@@ -3,7 +3,12 @@ import { Annotation } from "@langchain/langgraph";
 import { BaseMessage, AIMessage } from "@langchain/core/messages";
 import { ceoAgent } from "./ceoAgent";
 import { ctoAgent, cfoAgent, cmoAgent, cooAgent } from "./cSuiteAgents";
+import { BUSINESS_OVERVIEW } from '@lib/constants/business'; // Updated import
 
+// Example usage if needed
+// const someFunction = () => {
+//   console.log(BUSINESS_OVERVIEW);
+// };
 
 interface CEODecision {
   decision: string;

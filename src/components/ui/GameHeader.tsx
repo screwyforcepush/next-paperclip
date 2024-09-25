@@ -5,6 +5,7 @@ import { useGameState } from '@/contexts/GameStateContext';
 import { startNewGame } from '@/lib/utils/api';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';
 import ReactMarkdown from 'react-markdown';
+import { BUSINESS_OVERVIEW } from '@lib/constants/business'; // Adjust the path as necessary
 
 const GameHeader: React.FC = () => {
   const [isOverviewOpen, setIsOverviewOpen] = useState(false);
@@ -24,13 +25,6 @@ const GameHeader: React.FC = () => {
       setIsLoading(false);
     }
   };
-
-  const businessOverview = "Universal Paperclips, a two-year-old startup founded by tech entrepreneur Alex Turing, operates in the paperclip industry. The company integrates AI technology into its production and business processes.\n\n" +
-    "**Product & Market:** High-quality, innovative paperclips with AI-optimized design and production. Serves B2B office supply sector and specialized industries (medical, aerospace).\n\n" +
-    "**Operations & Technology:**\n\n" +
-    "- Silicon Valley HQ with one California manufacturing facility\n" +
-    "- 50 employees across manufacturing, sales, and administration\n" +
-    "- Ongoing R&D in AI and materials science";
 
   return (
     <header className="bg-gray-900 text-white p-4">
@@ -83,7 +77,7 @@ const GameHeader: React.FC = () => {
               li: ({node, ...props}) => <li className="mb-1" {...props} />,
             }}
           >
-            {businessOverview}
+            {BUSINESS_OVERVIEW}
           </ReactMarkdown>
         </div>
       )}

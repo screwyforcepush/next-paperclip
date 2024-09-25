@@ -1,5 +1,6 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { getChatOpenAI } from '@/lib/utils/openaiConfig';
+import { BUSINESS_OVERVIEW } from '@lib/constants/business'; // Updated import
 
 export async function generateScenario(impactAnalysis?: string): Promise<string> {
   console.log("[generateScenario] Starting scenario generation");
@@ -20,17 +21,10 @@ export async function generateScenario(impactAnalysis?: string): Promise<string>
 
     [/TASK]
 
-    Universal Paperclips:
-    A rapidly growing startup founded two years ago by tech entrepreneur Alex Turing. The company has revolutionized the seemingly mundane paperclip industry by integrating cutting-edge AI technology into its production and business processes. Currently in its early growth stage, Universal Paperclips is experiencing both the excitement of success and the challenges of rapid expansion.
-    Primary product - High-quality, innovative paperclips
-    Target market - Initially B2B office supply sector, now expanding into specialized industries
-    Headquarters - Silicon Valley, California
-    Manufacturing - One facility in California
-    Employees - 50 employees across manufacturing, sales, and administration
-    R&D - Significant investment in AI and materials science
+    Business:
+    ${BUSINESS_OVERVIEW}
 
-
-        ${impactAnalysis ? `
+    ${impactAnalysis ? `
     Recent Activity:
     ${impactAnalysis}
     ` : ''}

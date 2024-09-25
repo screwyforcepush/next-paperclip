@@ -3,6 +3,7 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { getChatOpenAI } from '@/lib/utils/openaiConfig';
+import { BUSINESS_OVERVIEW } from '@lib/constants/business'; // Add this import
 
 type CSuiteRole = "CTO" | "CFO" | "CMO" | "COO";
 
@@ -20,6 +21,9 @@ function createAgentChain(role: CSuiteRole) {
     System: ${cSuiteSystemPrompts[role]}
     Current business situation: {situation}
     CEO's decision: {ceoDecision}
+
+    Business:
+    ${BUSINESS_OVERVIEW}
 
     As the ${role}, what actions do you propose to take based on this information?
     Respond with your one line rationale followed by a single priority action.

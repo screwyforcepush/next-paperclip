@@ -4,11 +4,12 @@ import { RunnableSequence } from "@langchain/core/runnables";
 import { BaseMessage } from "@langchain/core/messages";
 import { z } from "zod";
 import { getChatOpenAI } from '@/lib/utils/openaiConfig';
+import { BUSINESS_OVERVIEW } from '@lib/constants/business'; // Updated import
 
 const model = getChatOpenAI();
 
 const ceoPrompt = PromptTemplate.fromTemplate(`
-You are the CEO of Universal Paperclips. Your role is to make high-level decisions and delegate your expected outcomes to your C-suite team. 
+You are Alex Turing,the CEO of Universal Paperclips. Your role is to make high-level decisions and delegate your expected outcomes to your C-suite team. 
 There is an inflection point that the company is facing. You have hired a consultant to advice you on the best course of action.
 You consider the advice, but ultimatly, you make the final decision.
 
@@ -29,17 +30,16 @@ You consider the advice, but ultimatly, you make the final decision.
 [/TASK]
 
 
-
+${BUSINESS_OVERVIEW}
 
 Universal Paperclips:
-A rapidly growing startup founded two years ago by tech entrepreneur Alex Turing. The company has revolutionized the seemingly mundane paperclip industry by integrating cutting-edge AI technology into its production and business processes. Currently in its early growth stage, Universal Paperclips is experiencing both the excitement of success and the challenges of rapid expansion.
-Primary product - High-quality, innovative paperclips
-Unique Selling Proposition - AI-optimized design and production, resulting in superior products at competitive prices
-Target market - Initially B2B office supply sector, now expanding into specialized industries
-Headquarters - Silicon Valley, California
-Manufacturing - One facility in California
-Employees - 50 employees across manufacturing, sales, and administration
-R&D - Significant investment in AI and materials science
+A two-year-old startup founded by tech entrepreneur Alex Turing, operates in the paperclip industry. The company integrates AI technology into its production and business processes.
+- Product & Market
+  - High-quality, innovative paperclips with AI-optimized design and production. Serves B2B office supply sector and specialized industries (medical, aerospace).
+- Operations & Technology 
+  - Silicon Valley HQ with one California manufacturing facility
+  - 50 employees across manufacturing, sales, and administration
+  - Ongoing R&D in AI and materials science
 
 
 Inflection Point: 

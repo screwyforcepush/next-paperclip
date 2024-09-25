@@ -19,12 +19,6 @@ export interface GameState {
   messages: Message[];
 }
 
-// Remove duplicate or obsolete interfaces that are no longer used.
-// For instance, if 'MessageContentComplex' is not used, it can be removed.
-
-// Ensure that all components and functions import types from this single source.
-// ... rest of the code ...
-
 export interface Message {
   role: string;
   content: string;
@@ -32,9 +26,6 @@ export interface Message {
   cycleNumber?: number; // Include this property
 }
 
-/**
- * Represents the Key Performance Indicators (KPIs) of the game.
- */
 export interface KPI {
   revenue: number;
   profitMargin: number;
