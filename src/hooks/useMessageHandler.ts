@@ -105,5 +105,5 @@ export const useMessageHandler = (input: string, setInput: (input: string) => vo
     }
   };
 
-  return { handleSubmit, isSimulating }; // Removed currentCycle from return
+  return { handleSubmit, isSimulating }; 
 };

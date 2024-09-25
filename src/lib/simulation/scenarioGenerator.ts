@@ -1,8 +1,10 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { getChatOpenAI } from '@/lib/utils/openaiConfig';
-import { BUSINESS_OVERVIEW } from '@lib/constants/business'; // Updated import
+import { BUSINESS_OVERVIEW } from '@lib/constants/business'; 
+import { StructuredOutputParser } from "@langchain/core/output_parsers"; 
+import { z } from "zod"; 
 
-export async function generateScenario(impactAnalysis?: string): Promise<string> {
+export async function generateScenario(impactAnalysis?: string): Promise<{ scenario: string; advice_request: string }> {
   console.log("[generateScenario] Starting scenario generation");
 
   try {
@@ -15,10 +17,15 @@ export async function generateScenario(impactAnalysis?: string): Promise<string>
     [TASK]
     Generate an upcoming business scenario (inflection point) that the market is facing.
     As the generator of Storms, your scenario should present both opportunity and great risk if fumbled.
-    The inflection point you generate will be faced by Universal Paperclips.
-    Provide your response in 2-3 sentences, focusing on the most critical aspect of the scenario.
+    The scenerio is an inflection point that will be faced by Universal Paperclips.
+    The scenerio should be  2-3 sentences, focusing on the most critical aspect of the scenario.
+    Include in your reponse a request from Universal Paperclips for specific advice in regard to the scenario.
 
-
+    **Provide your response in the following JSON format:**
+    {{
+      "scenario": "Your generated scenario",
+      "advice_request": "Your request for specific advice"
+    }}
     [/TASK]
 
     ${BUSINESS_OVERVIEW}
@@ -31,13 +38,22 @@ export async function generateScenario(impactAnalysis?: string): Promise<string>
 
     console.log("[generateScenario] Creating prompt template");
     const prompt = PromptTemplate.fromTemplate(template);
-    const chain = prompt.pipe(model);
+
+    const outputParser = StructuredOutputParser.fromZodSchema(
+      z.object({
+        scenario: z.string(),
+        advice_request: z.string(),
+      })
+    );
+
+    const chain = prompt.pipe(model).pipe(outputParser);
 
     console.log("[generateScenario] Invoking AI model");
-    const result = await chain.invoke({});
+    const parsedResult = await chain.invoke({});
     console.log("[generateScenario] Scenario generated successfully");
-    console.log("[generateScenario] Generated scenario:", result.content);
-    return result.content as string;
+    console.log("[generateScenario] Generated scenario:", parsedResult.scenario);
+    console.log("[generateScenario] Advice request:", parsedResult.advice_request);
+    return parsedResult;
   } catch (error) {
     console.error("[generateScenario] Error generating scenario:", error);
     if (error instanceof Error) {

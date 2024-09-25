@@ -9,5 +9,5 @@ export async function POST(req: Request) {
 
   const response = await generateScenario(gameState);
 
-  return NextResponse.json({ scenario: response });
+  return NextResponse.json(response);
 }

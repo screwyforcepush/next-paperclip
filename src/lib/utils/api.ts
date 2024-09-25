@@ -17,23 +17,28 @@ export async function startNewGame(): Promise<GameState> {
       body: JSON.stringify({}),
     });
 
-    const {scenario} = await response.json();
+    const { scenario, advice_request } = await response.json();
     
+    // Ensure scenario and advice_request are strings
+    const scenarioContent = typeof scenario === 'string' ? scenario : JSON.stringify(scenario);
+    const adviceRequestContent = typeof advice_request === 'string' ? advice_request : JSON.stringify(advice_request);
+
     const newGameState: GameState = {
       currentCycle: 1,
-      currentSituation: scenario,
+      currentSituation: scenarioContent,
       kpiHistory: [{
         revenue: 1000000,
         profitMargin: 0.1,
-        clvCacRatio: 2.0, // Changed from cacClvRatio to clvCacRatio and inverted the value
+        clvCacRatio: 2.0,
         productionEfficiencyIndex: 0.7,
         marketShare: 0.05,
         innovationIndex: 0.6
       }],
       messages: [
         { role: 'system', content: "catface Welcome to Universal Paperclips! Let's start your journey as a business consultant." },
-        { role: 'business_cycle', content: '1' },
-        { role: 'system', content: scenario },
+        { role: 'business_cycle', content: '1', cycleNumber: 1 },
+        { role: 'system', content: scenarioContent, cycleNumber: 1 },
+        { role: 'system', name: 'CEO', content: adviceRequestContent, cycleNumber: 1 },
       ],
     };
 

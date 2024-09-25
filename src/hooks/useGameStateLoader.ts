@@ -7,6 +7,7 @@ import { GameActionType } from '@/contexts/gameActionTypes';
 export const useGameStateLoader = () => {
   const { gameState, dispatch } = useGameState();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     console.log('[useGameStateLoader] Component mounted, current gameState:', gameState);
@@ -16,7 +17,7 @@ export const useGameStateLoader = () => {
         console.log('[useGameStateLoader] Loaded game state from local storage:', savedState);
         dispatch({ type: GameActionType.SetGameState, payload: savedState });
       } else {
-        console.log('[useGameStateLoader] No saved state found, starting new game');
+        console.log('[useGameStateLoader] No valid saved state found, starting new game');
         handleNewGame();
       }
     }
@@ -25,19 +26,19 @@ export const useGameStateLoader = () => {
 
   const handleNewGame = async () => {
     setLoading(true);
+    setError(null);
     try {
       console.log('[useGameStateLoader] Starting new game');
       const newGameState = await startNewGame();
       console.log('[useGameStateLoader] New game state received:', newGameState);
       dispatch({ type: GameActionType.SetGameState, payload: newGameState });
-      saveGameState(newGameState);
-      console.log('[useGameStateLoader] New game state saved to local storage');
     } catch (error) {
       console.error('[useGameStateLoader] Failed to start new game:', error);
+      setError('Failed to start a new game. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  return { loading, handleNewGame };
+  return { loading, error, handleNewGame };
 };

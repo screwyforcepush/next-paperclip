@@ -1,21 +1,21 @@
 'use client';
 
 import React, { useState, useRef, useLayoutEffect, useMemo } from 'react';
-import { useGameState } from '@/hooks/useGameState'; // Import the useGameState hook
+import { useGameState } from '@/hooks/useGameState';
 import { useGameStateLoader } from '@/hooks/useGameStateLoader';
-import { useMessageHandler } from '@/hooks/useMessageHandler'; // Added import for useMessageHandler
+import { useMessageHandler } from '@/hooks/useMessageHandler';
 import MessageBubble from './MessageBubble';
 import BusinessCycleHeader from './BusinessCycleHeader';
 import SimulationAccordion from './SimulationAccordion';
-import { motion, AnimatePresence } from 'framer-motion'; // Added import for motion
+import { motion, AnimatePresence } from 'framer-motion';
 
 const ChatPanel: React.FC = () => {
   const { gameState } = useGameState();
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { loading /*, handleNewGame */ } = useGameStateLoader(); // Removed handleNewGame
-  const { handleSubmit, isSimulating } = useMessageHandler(input, setInput); // Removed currentCycle from destructure
+  const { loading, error, handleNewGame } = useGameStateLoader();
+  const { handleSubmit, isSimulating } = useMessageHandler(input, setInput);
 
   // Group simulation messages by cycleNumber
   const groupedSimulations = useMemo(() => {
@@ -32,13 +32,13 @@ const ChatPanel: React.FC = () => {
     return groups;
   }, [gameState.messages]);
 
-  useLayoutEffect(() => { // Changed from useEffect to useLayoutEffect
+  useLayoutEffect(() => {
     console.log('[ChatPanel] Game state updated:', gameState);
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [gameState.messages, isSimulating]); // Added isSimulating to dependencies
+  }, [gameState.messages, isSimulating]);
 
   console.log('[ChatPanel] Rendering. Current game state:', gameState);
-  console.log('[ChatPanel] isSimulating:', isSimulating, 'currentCycle:', gameState.currentCycle); // Log currentCycle from gameState
+  console.log('[ChatPanel] isSimulating:', isSimulating, 'currentCycle:', gameState.currentCycle);
 
   return (
     <div className="chat-panel flex flex-col h-full bg-gray-900 text-white">
@@ -46,6 +46,16 @@ const ChatPanel: React.FC = () => {
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center h-full">
+            <p className="text-red-500 mb-4">{error}</p>
+            <button
+              onClick={handleNewGame}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Start New Game
+            </button>
           </div>
         ) : gameState.messages.length === 0 ? (
           <div className="flex items-center justify-center h-full text-red-500">No messages yet. Start a new game or provide advice.</div>
@@ -58,7 +68,6 @@ const ChatPanel: React.FC = () => {
 
               while (index < messages.length) {
                 const message = messages[index];
-                // console.log(`[ChatPanel] Rendering message ${index}:`, message);
 
                 if (message.role === 'business_cycle') {
                   const currentCycleNumber = parseInt(message.content, 10);
@@ -67,7 +76,7 @@ const ChatPanel: React.FC = () => {
                   );
                   index++;
                 } else if (message.role === 'simulation_group') {
-                  const cycleNumber = messages[index + 1]?.cycleNumber || 0; // Assuming cycleNumber is in the next message
+                  const cycleNumber = messages[index + 1]?.cycleNumber || 0;
                   const simulationMessages = groupedSimulations[cycleNumber] || [];
                   elements.push(
                     <SimulationAccordion
@@ -77,7 +86,7 @@ const ChatPanel: React.FC = () => {
                       isSimulating={isSimulating && cycleNumber === gameState.currentCycle}
                     />
                   );
-                  index += simulationMessages.length + 1; // Skip the group header and its messages
+                  index += simulationMessages.length + 1;
                 } else {
                   elements.push(
                     <MessageBubble key={`msg-${index}`} message={message} />
@@ -85,7 +94,6 @@ const ChatPanel: React.FC = () => {
                   index++;
                 }
               }
-
               return elements.map((element, index) => (
                 <motion.div
                   key={index}

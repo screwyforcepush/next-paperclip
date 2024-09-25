@@ -83,17 +83,21 @@ export class BusinessEngine {
     yield businessCycleMessage;
 
 
-    console.log('[BusinessEngine] Generating new scenario');
+    console.log('[BusinessEngine] Generating new scenario and advice request');
     let newScenario: string;
+    let adviceRequest: string;
     try {
-      newScenario = await generateScenario(impactAnalysis.content);
+      const { scenario, advice_request } = await generateScenario(impactAnalysis.content);
+      newScenario = scenario;
+      adviceRequest = advice_request;
       console.log('[BusinessEngine] New scenario:', newScenario);
+      console.log('[BusinessEngine] Advice request:', adviceRequest);
     } catch (error) {
       console.error('[BusinessEngine] Error generating scenario:', error);
       newScenario = "An unexpected issue occurred. The CEO is working to resolve it.";
+      adviceRequest = "No advice requested due to an error.";
     }
 
-    
     // Add system message with new scenario
     const systemMessage: Message = {
       role: 'system',
@@ -102,6 +106,16 @@ export class BusinessEngine {
     };
     simulationMessages.push(systemMessage);
     yield systemMessage;
+
+    // Add advice request message
+    const adviceMessage: Message = {
+      role: 'system',
+      content: adviceRequest,
+      name: 'CEO',
+      cycleNumber: newCycle, // Assign cycleNumber
+    };
+    simulationMessages.push(adviceMessage);
+    yield adviceMessage;
 
     return gameState; // Return the updated game state
   }

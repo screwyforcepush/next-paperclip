@@ -9,11 +9,10 @@ A business simulation game where players act as consultants to a hypothetical pa
 - **Data Visualization**: Tremor
 - **Backend**: Next.js API Routes with Edge Runtime
 - **AI/ML**: LangChain, LangGraph
-- **State Management**: React Context API (implemented in `GameStateContext.tsx`)
+- **State Management**: React Context API
 - **Persistence**: Local Storage
 - **Linting**: ESLint
-- **Testing**: Jest (or your preferred testing framework)
-- **Code Quality**: ESLint, Prettier
+- **Testing**: (Add testing frameworks if any)
 
 ## Key Features
 
@@ -59,37 +58,6 @@ A business simulation game where players act as consultants to a hypothetical pa
 
    - Navigate to [http://localhost:3000](http://localhost:3000)
 
-## Development Setup
-
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-2. Set up environment variables:
-   - Create a `.env.local` file in the root directory.
-   - Add your OpenAI API key:
-     ```
-     OPENAI_API_KEY=your_api_key_here
-     ```
-
-3. Run the development server:
-   ```bash
-   npm run dev
-   ```
-
-4. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
-
-5. To run linting:
-   ```bash
-   npm run lint
-   ```
-
-6. To format code:
-   ```bash
-   npm run format
-   ```
-
 ## Project Structure
 ```
 project-root/
@@ -118,10 +86,6 @@ project-root/
 │   │       └── KPIChart.tsx
 │   ├── contexts/
 │   │   └── GameStateContext.tsx
-│   ├── hooks/
-│   │   ├── useGameState.ts
-│   │   ├── useGameStateLoader.ts
-│   │   ├── useMessageHandler.ts
 │   ├── lib/
 │   │   ├── agents/
 │   │   │   ├── agentManager.ts
@@ -136,7 +100,7 @@ project-root/
 │   │       ├── api.ts
 │   │       ├── localStorage.ts
 │   │       └── openaiConfig.ts
-│   ├─ types/
+│   ├��─ types/
 │   │   └── game.d.ts
 │   └── app/
 │       └── globals.css
@@ -151,7 +115,6 @@ project-root/
 ├── tsconfig.json
 └── README.md
 ```
-
 ## System Architecture Overview
 
 The Universal Paperclips Simulation Game is designed with a modular architecture to facilitate scalability and maintainability. The application is divided into several layers and components that interact with each other to provide a seamless user experience.
@@ -261,8 +224,7 @@ kpiCalculator -->|Updated KPIs| GameStateContext
 GameStateContext -->|State Change| Dashboard
 GameStateContext -->|State Change| ChatPanel
 GameStateContext -->|Save| localStorage
-localStorage -->|Load| GameStateContext
-```
+localStorage -->|Load| GameStateContext```
 
 ### **Data Models**
 
@@ -276,23 +238,21 @@ localStorage -->|Load| GameStateContext
 #### **Message Format**
 ```typescript
 interface Message {
-  role: 'user' | 'assistant' | 'system' | 'business_cycle' | 'simulation_group' | 'simulation';
-  content: string;
-  name?: string;
-}
-```
+role: 'user' | 'assistant' | 'system' | 'business_cycle' | 'simulation_group' | 'simulation';
+content: string;
+name?: string;
+}```
 
 #### **KPI Structure**
 ```typescript
 interface KPI {
-  revenue: number;
-  profitMargin: number;
-  cacClvRatio: number;
-  productionEfficiencyIndex: number;
-  marketShare: number;
-  innovationIndex: number;
-}
-```
+revenue: number;
+profitMargin: number;
+cacClvRatio: number;
+productionEfficiencyIndex: number;
+marketShare: number;
+innovationIndex: number;
+}```
 
 ## AI Agent Communication Protocol
 
@@ -315,8 +275,8 @@ interface KPI {
 
 ### **Impact Analysis**
 
-- Evaluates the potential impact of the C-suite's proposed actions.
-- Provides a critique focusing on risks and uncertainties.
+- Evaluates the proposed actions.
+- Highlights potential risks and uncertainties.
 
 ## API Routes and Interactions
 
@@ -371,207 +331,6 @@ interface KPI {
 - **Memoization**: Expensive computations are memoized.
 - **Edge Functions**: API routes run on Edge Runtime for reduced latency.
 
-## Key Components and Their Responsibilities
-
-### **Frontend Components**
-
-#### **Game Header** `src/components/ui/GameHeader.tsx`
-
-- Displays game title: "Universal Paperclips - Business Advice Simulation".
-- Includes a "New Game" button to reset the game.
-- Implements an accordion to show/hide the business overview.
-
-#### **Chat Panel** `src/components/game/ChatPanel.tsx`
-
-- Manages the chat interface where users interact with the CEO and C-suite agents.
-- Handles user input for providing advice.
-- Displays AI agent interactions and system messages.
-- Manages the message history and scroll behavior.
-
-#### **Message Bubble** `src/components/game/MessageBubble.tsx`
-
-- Renders individual messages in the chat panel.
-- Differentiates between user messages and AI messages.
-
-#### **Business Cycle Header** `src/components/game/BusinessCycleHeader.tsx`
-
-- Displays the current business cycle number within the chat.
-- Visually separates different business cycles.
-
-#### **Dashboard** `src/components/dashboard/Dashboard.tsx`
-
-- Displays the KPI dashboard alongside the chat panel.
-- Renders the Company Overview and KPI Charts.
-- Updates in real-time as the game progresses.
-
-#### **Company Overview** `src/components/dashboard/CompanyOverview.tsx`
-
-- Shows the company name and current business cycle.
-- Displays a line chart of the company's share price.
-
-#### **KPI Chart** `src/components/dashboard/KPIChart.tsx`
-
-- Renders individual KPI charts using Tremor's `AreaChart` component.
-- Formats data for KPIs like Revenue, Profit Margin, Market Share, etc.
-
-#### **GameStateContext** `src/contexts/GameStateContext.tsx`
-
-- Provides global state management for the game using React Context and Reducer.
-- Manages game state, including current cycle, KPIs, messages, and situations.
-
-### **Backend Components**
-
-#### **API Routes**
-
-- **`/api/simulate`** `src/app/api/simulate/route.ts`:
-  - Handles simulation requests.
-  - Streams simulation results to the client.
-
-- **`/api/generateScenario`** `src/app/api/generateScenario/route.ts`:
-  - Generates new business scenarios (inflection points).
-
-#### **Business Engine** `src/lib/simulation/businessEngine.ts`
-
-- Manages the game logic for each business cycle.
-- Coordinates the simulation steps and yields updates.
-- Updates the game state after each cycle.
-
-#### **Agent Manager** `src/lib/agents/agentManager.ts`
-
-- Orchestrates interactions between AI agents (CEO and C-suite).
-- Manages the conversation flow and decision-making process.
-
-#### **CEO Agent** `src/lib/agents/ceoAgent.ts`
-
-- Represents the CEO's decision-making logic.
-- Considers user advice and delegates tasks to C-suite agents.
-
-#### **C-suite Agents** `src/lib/agents/cSuiteAgents.ts`
-
-- Includes agents for CTO, CFO, CMO, and COO.
-- Each agent proposes actions based on the CEO's assignments.
-
-#### **Scenario Generator** `src/lib/simulation/scenarioGenerator.ts`
-
-- Generates dynamic business challenges for each cycle.
-- Ensures variety and progressive difficulty.
-
-#### **KPI Calculator** `src/lib/simulation/kpiCalculator.ts`
-
-- Calculates new KPI values based on agent actions and impact analysis.
-- Uses AI to determine the percentage change in KPIs.
-
-#### **Impact Analysis** `src/lib/simulation/impactAnalysis.ts`
-
-- Analyzes the potential impact of the C-suite's proposed actions.
-- Provides a critique focusing on risks and uncertainties.
-
-#### **Utility Functions**
-
-- **Local Storage Utilities** `src/lib/utils/localStorage.ts`:
-  - Handles saving and loading game state to/from local storage.
-
-- **API Utilities** `src/lib/utils/api.ts`:
-  - Provides functions to interact with backend API routes.
-
-- **OpenAI Configuration** `src/lib/utils/openaiConfig.ts`:
-  - Configures the OpenAI API client with appropriate settings.
-
-## Game Flow and Logic
-
-1. **Game Initialization**:
-
-   - The game loads from local storage if a saved state is available.
-   - If not, a new game initializes with default settings.
-   - The system presents the initial business scenario.
-
-2. **Game Cycle**:
-
-   a. **Present Inflection Point**: The system presents the current business challenge.
-   
-   b. **CEO Requests Advice**: The CEO (AI agent) asks the user for advice.
-   
-   c. **User Provides Advice**: The user inputs their advice via the chat interface.
-   
-   d. **CEO Considers and Delegates**: The CEO considers the advice and delegates tasks to C-suite agents.
-   
-   e. **C-suite Proposes Actions**: C-suite agents propose their respective actions.
-   
-   f. **Impact Analysis**: The system analyzes the potential impact of the proposed actions.
-   
-   g. **KPI Update**: KPIs are calculated and updated based on the simulation.
-   
-   h. **Display Results**: The updated KPIs are displayed on the dashboard.
-   
-   i. **Cycle Repeat**: The cycle repeats with a new inflection point.
-
-## AI Agent Implementation
-
-- **LangChain and LangGraph**:
-
-  - Used to implement the reasoning and decision-making logic of AI agents.
-  - Defines the roles and communication flow between the CEO and C-suite agents.
-
-- **Agents**:
-
-  - **CEO Agent**: Considers user advice, makes high-level decisions, and delegates tasks.
-  - **C-suite Agents**: Propose specific actions based on their expertise and the CEO's assignments.
-  - **Impact Analysis Agent**: Critiques the proposed actions and highlights potential risks.
-
-- **Decision-Making Process**:
-
-  - User advice influences the CEO's decisions as a weighted factor.
-  - Agents communicate following predefined protocols to simulate realistic business interactions.
-
-## Data Persistence
-
-- **Local Storage**:
-
-  - Game state is saved to local storage to enable session persistence.
-  - Includes messages, current cycle, KPIs, and current situation.
-
-- **Utilities**:
-
-  - Functions in `src/lib/utils/localStorage.ts` handle save and load operations.
-
-## API Routes
-
-- **`/api/simulate`**:
-
-  - Endpoint for running the business cycle simulation.
-  - Streams simulation results to the client for real-time updates.
-
-- **`/api/generateScenario`**:
-
-  - Generates new business challenges or inflection points.
-  - Called at the start of the game and after each cycle.
-
-## Responsive Design
-
-- **Layout**:
-
-  - Split view for larger screens: Chat Panel on the left and Dashboard on the right.
-  - Stacked layout for smaller screens: Chat Panel above the Dashboard.
-
-- **Styling**:
-
-  - Uses Tailwind CSS for utility-first responsive styling
-
-- Components and utilities include try-catch blocks.
-- Errors are logged to the console.
-- User feedback is provided for critical errors.
-
-## Security Considerations
-
-- Environment variables (API keys) are managed via `.env.local`.
-- Sensitive data is not exposed on the client side.
-- OpenAI API keys are kept secure.
-
-## Performance Optimizations
-
-- **Lazy Loading**: Components and modules are loaded as needed.
-- **Memoization**: Expensive computations are memoized.
-- **Edge Functions**: API routes run on Edge Runtime for reduced latency.
 
 ## Key Components and Their Responsibilities
 
@@ -842,3 +601,23 @@ interface KPI {
 - **Simulation Flow**:
   - Runs asynchronously and streams results to the client.
   - Updates the game state and persists it.
+
+## Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. **Fork the repository**.
+2. **Create a new branch** for your feature or bug fix.
+3. **Commit your changes** with descriptive messages.
+4. **Push to your fork**.
+5. **Submit a pull request** to the `main` branch.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+## Acknowledgments
+
+- Inspired by the original [Universal Paperclips](https://www.decisionproblem.com/paperclips/) game.
+- Thanks to the developers of Next.js, LangChain, and all open-source contributors.
+
