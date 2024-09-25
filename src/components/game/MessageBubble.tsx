@@ -3,6 +3,7 @@
 import React from 'react';
 import { Message } from '@/types/game';
 import { motion } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
 
 interface MessageBubbleProps {
   message: Message;
@@ -29,7 +30,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
         {isSimulation && message.name && (
           <p className="text-xs font-bold mb-1">{message.name}</p>
         )}
-        <p className="text-sm">{message.content}</p>
+        <ReactMarkdown className="text-sm whitespace-pre-wrap">
+          {message.content}
+        </ReactMarkdown>
       </div>
     </motion.div>
   );
