@@ -59,6 +59,7 @@ export class BusinessEngine {
     console.log('[BusinessEngine] Impact analysis:', impactAnalysis);
     impactAnalysis.role = 'simulation';
     impactAnalysis.cycleNumber = currentCycle
+    impactAnalysis.name = 'Outcome';
     yield impactAnalysis;
     simulationMessages.push(impactAnalysis);
 
