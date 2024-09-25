@@ -114,20 +114,27 @@ const ChatPanel: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
       <form onSubmit={handleSubmit} className="p-4 bg-gray-800 border-t border-gray-700">
-        <div className="flex items-center">
+        <div className="flex items-center space-x-2">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            className="flex-1 p-2 bg-gray-700 text-white border border-gray-600 rounded-l focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-200 ease-in-out"
+            className="flex-1 p-3 bg-gray-700 text-white border border-gray-600 rounded-l-full rounded-r-full focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
             placeholder="Type your advice..."
+            disabled={isSimulating}
           />
           <button
             type="submit"
-            className="bg-indigo-600 text-white px-4 py-2 rounded-r hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-200 ease-in-out"
-            disabled={isSimulating}
+            className={`text-white p-3 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-200 ease-in-out ${
+              input.trim() && !isSimulating
+                ? 'bg-indigo-600 hover:bg-indigo-700'
+                : 'bg-gray-600 cursor-not-allowed opacity-50'
+            }`}
+            disabled={!input.trim() || isSimulating}
           >
-            Send
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
           </button>
         </div>
       </form>
