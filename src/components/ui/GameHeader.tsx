@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useGameState } from '@/contexts/GameStateContext';
 import { startNewGame } from '@/lib/utils/api';
+import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';
 
 const GameHeader: React.FC = () => {
   const [isOverviewOpen, setIsOverviewOpen] = useState(false);
@@ -24,27 +25,38 @@ const GameHeader: React.FC = () => {
   };
 
   return (
-    <header className="bg-gray-800 text-white p-4">
+    <header className="bg-gray-900 text-white p-4">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Universal Paperclips - Business Advice Simulation</h1>
-        <button
-          onClick={handleNewGame}
-          disabled={isLoading}
-          className={`bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 ${
-            isLoading ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-        >
-          {isLoading ? 'Starting...' : 'New Game'}
-        </button>
+        <div>
+          <h1 className="text-2xl font-bold">Universal Paperclips</h1>
+          <p className="text-sm text-gray-400">Business Advice Simulation</p>
+        </div>
+        <div className="flex items-center space-x-4">
+          <button 
+            onClick={() => setIsOverviewOpen(!isOverviewOpen)}
+            className="text-sm text-gray-400 hover:text-white transition-colors duration-200 ease-in-out flex items-center"
+          >
+            Business Overview
+            {isOverviewOpen 
+              ? <ChevronUpIcon className="w-4 h-4 ml-1" />
+              : <ChevronDownIcon className="w-4 h-4 ml-1" />
+            }
+          </button>
+          <button
+            onClick={handleNewGame}
+            disabled={isLoading}
+            className={`bg-red-600 text-white px-4 py-2 rounded text-sm font-medium
+              ${isLoading 
+                ? 'opacity-50 cursor-not-allowed' 
+                : 'hover:bg-red-700 active:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900'
+              }`}
+          >
+            {isLoading ? 'Starting...' : 'New Game'}
+          </button>
+        </div>
       </div>
-      <button 
-        onClick={() => setIsOverviewOpen(!isOverviewOpen)}
-        className="mt-2 text-sm underline"
-      >
-        {isOverviewOpen ? 'Hide' : 'Show'} Business Overview
-      </button>
       {isOverviewOpen && (
-        <div className="mt-2 text-sm">
+        <div className="mt-4 text-sm bg-gray-800 p-4 rounded border border-gray-700">
           {/* Add business overview content here */}
           Business overview content goes here...
         </div>
