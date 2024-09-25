@@ -21,7 +21,7 @@ highlight uncertainties across Internal and external market, and Capability and 
 Pick at the gaps in the Actions, what could go wrong?
 Cotastraphise 
 
-Business:
+
 ${BUSINESS_OVERVIEW}
 
 Inflection Point:

@@ -22,7 +22,6 @@ function createAgentChain(role: CSuiteRole) {
     Current business situation: {situation}
     CEO's decision: {ceoDecision}
 
-    Business:
     ${BUSINESS_OVERVIEW}
 
     As the ${role}, what actions do you propose to take based on this information?

@@ -21,7 +21,6 @@ export async function generateScenario(impactAnalysis?: string): Promise<string>
 
     [/TASK]
 
-    Business:
     ${BUSINESS_OVERVIEW}
 
     ${impactAnalysis ? `
