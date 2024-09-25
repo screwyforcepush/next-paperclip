@@ -54,7 +54,6 @@ const SimulationAccordion: React.FC<SimulationAccordionProps> = ({ messages, cyc
             </span>
           )}
         </div>
-        <span className="text-sm text-gray-300">Cycle {cycleNumber}</span>
       </div>
       <AnimatePresence initial={false}>
         {isOpen && (

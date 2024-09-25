@@ -20,9 +20,9 @@ const KPIChart: React.FC<KPIChartProps> = ({ title, data, category, color, value
     cyan: 'cyan',
   };
 
-  const currentValue = data[data.length - 1][category];
-  const previousValue = data[data.length - 2]?.[category] ?? currentValue;
-  const firstValue = data[0][category];
+  const currentValue = data.length > 0 ? data[data.length - 1][category] : 0;
+  const previousValue = data.length > 1 ? data[data.length - 2][category] : currentValue;
+  const firstValue = data.length > 0 ? data[0][category] : currentValue;
 
   const changeFromPrevious = ((currentValue - previousValue) / previousValue) * 100;
   const changeFromFirst = ((currentValue - firstValue) / firstValue) * 100;
