@@ -44,9 +44,9 @@ const Dashboard: React.FC = () => {
           valueFormatter={(value) => `${(value * 100).toFixed(2)}%`}
         />
         <KPIChart
-          title="CAC/CLV Ratio"
+          title="CLV/CAC Ratio"
           data={kpiHistory}
-          category="cacClvRatio"
+          category="clvCacRatio"
           color="orange"
           valueFormatter={(value) => value.toFixed(2)}
         />

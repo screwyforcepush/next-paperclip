@@ -1,7 +1,7 @@
-export interface KPIState {
+export interface KPIs {
   revenue: number;
   profitMargin: number;
-  cacClvRatio: number;
+  clvCacRatio: number;
   productionEfficiencyIndex: number;
   marketShare: number;
   innovationIndex: number;
@@ -38,7 +38,7 @@ export interface Message {
 export interface KPI {
   revenue: number;
   profitMargin: number;
-  cacClvRatio: number;
+  clvCacRatio: number;
   productionEfficiencyIndex: number;
   marketShare: number;
   innovationIndex: number;

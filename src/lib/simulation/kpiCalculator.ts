@@ -10,7 +10,7 @@ const model = getChatOpenAI();
 const kpiImpactSchema = z.object({
   revenue: z.number(),
   profitMargin: z.number(),
-  cacClvRatio: z.number(),
+  clvCacRatio: z.number(),
   productionEfficiencyIndex: z.number(),
   marketShare: z.number(),
   innovationIndex: z.number(),
@@ -42,7 +42,7 @@ function adjustKPIs(currentKPIs: KPI, impactPercentages: KPI): KPI {
   return {
     revenue: currentKPIs.revenue * (1 + impactPercentages.revenue / 100),
     profitMargin: currentKPIs.profitMargin * (1 + impactPercentages.profitMargin / 100),
-    cacClvRatio: currentKPIs.cacClvRatio * (1 + impactPercentages.cacClvRatio / 100),
+    clvCacRatio: currentKPIs.clvCacRatio * (1 + impactPercentages.clvCacRatio / 100),
     productionEfficiencyIndex: currentKPIs.productionEfficiencyIndex * (1 + impactPercentages.productionEfficiencyIndex / 100),
     marketShare: currentKPIs.marketShare * (1 + impactPercentages.marketShare / 100),
     innovationIndex: currentKPIs.innovationIndex * (1 + impactPercentages.innovationIndex / 100),

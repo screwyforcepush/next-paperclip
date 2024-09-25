@@ -18,7 +18,7 @@ export interface Message {
 export interface KPIs {
   revenue: number;
   profitMargin: number;
-  cacClvRatio: number;
+  clvCacRatio: number;
   productionEfficiencyIndex: number;
   marketShare: number;
   innovationIndex: number;

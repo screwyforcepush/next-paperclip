@@ -25,7 +25,7 @@ export async function startNewGame(): Promise<GameState> {
       kpiHistory: [{
         revenue: 1000000,
         profitMargin: 0.1,
-        cacClvRatio: 0.5,
+        clvCacRatio: 2.0, // Changed from cacClvRatio to clvCacRatio and inverted the value
         productionEfficiencyIndex: 0.7,
         marketShare: 0.05,
         innovationIndex: 0.6
