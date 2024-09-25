@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useGameState } from '@/contexts/GameStateContext';
 import { startNewGame } from '@/lib/utils/api';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';
+import ReactMarkdown from 'react-markdown';
 
 const GameHeader: React.FC = () => {
   const [isOverviewOpen, setIsOverviewOpen] = useState(false);
@@ -23,6 +24,13 @@ const GameHeader: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  const businessOverview = "Universal Paperclips, a two-year-old startup founded by tech entrepreneur Alex Turing, operates in the paperclip industry. The company integrates AI technology into its production and business processes.\n\n" +
+    "**Product & Market:** High-quality, innovative paperclips with AI-optimized design and production. Serves B2B office supply sector and specialized industries (medical, aerospace).\n\n" +
+    "**Operations & Technology:**\n\n" +
+    "- Silicon Valley HQ with one California manufacturing facility\n" +
+    "- 50 employees across manufacturing, sales, and administration\n" +
+    "- Ongoing R&D in AI and materials science";
 
   return (
     <header className="bg-gray-900 text-white p-4">
@@ -57,8 +65,26 @@ const GameHeader: React.FC = () => {
       </div>
       {isOverviewOpen && (
         <div className="mt-4 text-sm bg-gray-800 p-4 rounded border border-gray-700">
-          {/* Add business overview content here */}
-          Business overview content goes here...
+          <button 
+            onClick={() => setIsOverviewOpen(!isOverviewOpen)}
+            className="text-sm text-gray-400 hover:text-white transition-colors duration-200 ease-in-out flex items-center pb-5"
+          >
+            Business Overview
+            {isOverviewOpen 
+              ? <ChevronUpIcon className="w-4 h-4 ml-1" />
+              : <ChevronDownIcon className="w-4 h-4 ml-1" />
+            }
+          </button>
+          <ReactMarkdown 
+            className="prose prose-sm prose-invert max-w-none"
+            components={{
+              p: ({node, ...props}) => <p className="mb-4" {...props} />,
+              ul: ({node, ...props}) => <ul className="list-disc pl-5 mb-4" {...props} />,
+              li: ({node, ...props}) => <li className="mb-1" {...props} />,
+            }}
+          >
+            {businessOverview}
+          </ReactMarkdown>
         </div>
       )}
     </header>
