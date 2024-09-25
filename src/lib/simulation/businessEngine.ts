@@ -57,7 +57,8 @@ export class BusinessEngine {
     console.log('[BusinessEngine] Analyzing impact');
     const impactAnalysis = await analyzeImpact(gameState.currentSituation, cSuiteActions);
     console.log('[BusinessEngine] Impact analysis:', impactAnalysis);
-    impactAnalysis.role = 'system';
+    impactAnalysis.role = 'simulation';
+    impactAnalysis.cycleNumber = currentCycle
     yield impactAnalysis;
     simulationMessages.push(impactAnalysis);
 

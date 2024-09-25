@@ -21,13 +21,13 @@ const SimulationAccordion: React.FC<SimulationAccordionProps> = ({ messages, cyc
       setIsOpen(false);
       console.log(`[SimulationAccordion] Closing accordion for cycle ${cycleNumber}`);
     }
-  }, [isSimulating, cycleNumber]); // Added cycleNumber to dependencies
+  }, [isSimulating, cycleNumber]);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && isSimulating) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, isOpen]);
+  }, [messages, isOpen, isSimulating]);
 
   const toggleAccordion = () => {
     setIsOpen(!isOpen);
@@ -55,9 +55,6 @@ const SimulationAccordion: React.FC<SimulationAccordionProps> = ({ messages, cyc
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
             className="bg-gray-700 overflow-hidden rounded-b"
-            onAnimationComplete={() => {
-              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-            }}
           >
             <div className="p-4">
               {messages.map((message, index) => (
