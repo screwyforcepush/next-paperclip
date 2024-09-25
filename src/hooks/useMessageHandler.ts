@@ -24,6 +24,14 @@ export const useMessageHandler = (input: string, setInput: (input: string) => vo
     const userMessage: Message = { role: 'user', content: userInput };
     dispatch({ type: GameActionType.AddMessage, payload: userMessage });
     setInput('');
+    
+    const messageRecieved: Message = {
+        role: 'system',
+        name: 'CEO',
+        content: "Thank you for your advice. We will discuss internally and take action.",
+      };
+    dispatch({ type: GameActionType.AddMessage, payload: messageRecieved });
+
 
     setIsSimulating(true);
     console.log('[useMessageHandler] isSimulating set to true');
