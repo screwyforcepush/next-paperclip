@@ -12,10 +12,10 @@ interface KPIChartProps {
 
 const KPIChart: React.FC<KPIChartProps> = ({ title, data, category, color, valueFormatter }) => {
   const chartColors = {
-    blue: 'blue',
+    blue: 'indigo',
     green: 'emerald',
-    orange: 'orange',
-    purple: 'violet',
+    orange: 'amber',
+    purple: 'purple',
     red: 'rose',
     cyan: 'cyan',
   };
@@ -43,9 +43,9 @@ const KPIChart: React.FC<KPIChartProps> = ({ title, data, category, color, value
   };
 
   return (
-    <Card className="bg-gray-800 border border-gray-700 shadow-lg p-3">
+    <Card className="bg-gray-900 border border-purple-700 shadow-lg p-3">
       <Flex flexDirection="col" alignItems="start" className="space-y-1">
-        <Text className="text-sm font-bold text-gray-300">{title}</Text>
+        <Text className="text-sm font-bold text-purple-300">{title}</Text>
         <Text className="text-xl font-semibold text-white">{valueFormatter(currentValue)}</Text>
         <Flex justifyContent="between" className="w-full text-xs text-gray-400">
           <Text>Prev:</Text>
@@ -69,6 +69,10 @@ const KPIChart: React.FC<KPIChartProps> = ({ title, data, category, color, value
         showGridLines={false}
         showAnimation={true}
         curveType="monotone"
+        theme={{
+          chart: { backgroundColor: 'transparent' },
+          tooltip: { backgroundColor: '#1F2937', color: '#F3F4F6' },
+        }}
       />
     </Card>
   );

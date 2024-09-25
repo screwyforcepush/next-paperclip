@@ -18,7 +18,7 @@ const Dashboard: React.FC = () => {
   const { kpiHistory, currentCycle } = gameState || { kpiHistory: [], currentCycle: 0 };
 
   if (!gameState) {
-    return <div>Loading...</div>;
+    return <div className="h-full flex items-center justify-center text-white">Loading...</div>;
   }
 
   return (
@@ -26,15 +26,13 @@ const Dashboard: React.FC = () => {
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-4">
         <CompanyOverview 
           companyName="PaperClip Inc."
-          currentCycle={currentCycle}
-          sharePrice={kpiHistory.map(kpi => kpi.revenue / 1000)}
         />
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
           <KPIChart
             title="Revenue"
             data={kpiHistory}
             category="revenue"
-            color="blue"
+            color="purple"
             valueFormatter={(value) => `$${value.toLocaleString()}`}
           />
           <KPIChart
@@ -55,7 +53,7 @@ const Dashboard: React.FC = () => {
             title="Production Efficiency"
             data={kpiHistory}
             category="productionEfficiencyIndex"
-            color="purple"
+            color="blue"
             valueFormatter={(value) => value.toFixed(2)}
           />
           <KPIChart
