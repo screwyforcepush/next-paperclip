@@ -16,12 +16,10 @@ const SimulationAccordion: React.FC<SimulationAccordionProps> = ({ messages, cyc
   useEffect(() => {
     if (isSimulating) {
       setIsOpen(true);
-      console.log(`[SimulationAccordion] Opening accordion for cycle ${cycleNumber}`);
     } else {
       setIsOpen(false);
-      console.log(`[SimulationAccordion] Closing accordion for cycle ${cycleNumber}`);
     }
-  }, [isSimulating, cycleNumber]);
+  }, [isSimulating]);
 
   useEffect(() => {
     if (isOpen && isSimulating) {
@@ -31,20 +29,20 @@ const SimulationAccordion: React.FC<SimulationAccordionProps> = ({ messages, cyc
 
   const toggleAccordion = () => {
     setIsOpen(!isOpen);
-    console.log(`[SimulationAccordion] Toggling accordion for cycle ${cycleNumber} to ${!isOpen}`);
   };
 
   return (
-    <div className="my-4">
+    <div className="my-4 border border-gray-700 rounded-lg overflow-hidden">
       <div
-        className="flex items-center cursor-pointer bg-gray-800 p-2 rounded-t"
+        className={`flex items-center justify-between cursor-pointer bg-gray-800 p-3 transition-colors duration-200 ${isOpen ? 'bg-blue-600' : 'hover:bg-gray-700'}`}
         onClick={toggleAccordion}
       >
-        <div className="flex-grow border-t border-gray-600"></div>
-        <div className="px-4 text-gray-200 text-sm font-medium">
-          Simulation {isOpen ? '▼' : '▶'}
+        <div className="text-gray-200 text-sm font-medium flex items-center">
+          <svg className={`w-5 h-5 mr-2 transition-transform duration-200 ${isOpen ? 'transform rotate-180' : ''}`} fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+          </svg>
+          Business Simulation
         </div>
-        <div className="flex-grow border-t border-gray-600"></div>
       </div>
       <AnimatePresence initial={false}>
         {isOpen && (
@@ -54,9 +52,9 @@ const SimulationAccordion: React.FC<SimulationAccordionProps> = ({ messages, cyc
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="bg-gray-700 overflow-hidden rounded-b"
+            className="bg-gray-900 overflow-hidden"
           >
-            <div className="p-4">
+            <div className="p-4 space-y-3">
               {messages.map((message, index) => (
                 <MessageBubble key={index} message={message} />
               ))}
