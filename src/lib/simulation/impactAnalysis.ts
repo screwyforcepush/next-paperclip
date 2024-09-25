@@ -1,5 +1,4 @@
 import { StateGraph, Annotation, END, START } from "@langchain/langgraph";
-import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { getChatOpenAI } from '@/lib/utils/openaiConfig';

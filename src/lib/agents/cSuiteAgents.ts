@@ -8,10 +8,10 @@ import { BUSINESS_OVERVIEW } from '@lib/constants/business'; // Add this import
 type CSuiteRole = "CTO" | "CFO" | "CMO" | "COO";
 
 const cSuiteSystemPrompts: Record<CSuiteRole, string> = {
-  CTO: `You are the Chief Technology Officer of a paperclip manufacturing company. Your role is to propose technological innovations and improvements to the production process.`,
-  CFO: `You are the Chief Financial Officer of a paperclip manufacturing company. Your role is to manage the company's finances, propose budget allocations, and suggest financial strategies.`,
-  CMO: `You are the Chief Marketing Officer of a paperclip manufacturing company. Your role is to develop marketing strategies, analyze market trends, and propose ways to increase market share.`,
-  COO: `You are the Chief Operating Officer of a paperclip manufacturing company. Your role is to oversee day-to-day operations, optimize processes, and propose operational improvements.`
+  CTO: `You are the Chief Technology Officer of Universal Paperclips. Your role is to propose technological innovations and improvements to the production process.`,
+  CFO: `You are the Chief Financial Officer of Universal Paperclips. Your role is to manage the company's finances, propose budget allocations, and suggest financial strategies.`,
+  CMO: `You are the Chief Marketing Officer of Universal Paperclips. Your role is to develop marketing strategies, analyze market trends, and propose ways to increase market share.`,
+  COO: `You are the Chief Operating Officer of Universal Paperclips. Your role is to oversee day-to-day operations, optimize processes, and propose operational improvements.`
 };
 
 const model = getChatOpenAI();
@@ -24,8 +24,11 @@ function createAgentChain(role: CSuiteRole) {
 
     ${BUSINESS_OVERVIEW}
 
-    As the ${role}, what actions do you propose to take based on this information?
-    Respond with your one line rationale followed by a single priority action.
+    As the ${role}, what *SPECIFIC* action do you propose we take based on this information?
+
+    [TASK]
+    Respond with one line containing the single specific action you propose we take.
+    [/TASK]
   `);
 
   return RunnableSequence.from([

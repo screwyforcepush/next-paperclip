@@ -5,12 +5,8 @@ import { ceoAgent } from "./ceoAgent";
 import { ctoAgent, cfoAgent, cmoAgent, cooAgent } from "./cSuiteAgents";
 import { BUSINESS_OVERVIEW } from '@lib/constants/business'; // Updated import
 
-// Example usage if needed
-// const someFunction = () => {
-//   console.log(BUSINESS_OVERVIEW);
-// };
-
 interface CEODecision {
+  deliberation: string;
   decision: string;
   assignments: Record<string, string>;
 }
@@ -62,9 +58,9 @@ const ceoNode = async (state: typeof AgentState.State) => {
       messages: state.messages,
     });
     console.log("[ceoNode] CEO response:", ceoResponse);
-
+    const reponse_string = ceoResponse.deliberation + "\n" + ceoResponse.decision;
     return {
-      messages: [new AIMessage({ content: ceoResponse.decision, name: "CEO" })],
+      messages: [new AIMessage({ content: reponse_string, name: "CEO" })],
       ceoDecision: ceoResponse,
       completedAgents: ["CEO"],
     };

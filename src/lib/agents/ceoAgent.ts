@@ -10,15 +10,18 @@ const model = getChatOpenAI();
 
 const ceoPrompt = PromptTemplate.fromTemplate(`
 You are Alex Turing,the CEO of Universal Paperclips. Your role is to make high-level decisions and delegate your expected outcomes to your C-suite team. 
-There is an inflection point that the company is facing. You have hired a consultant to advice you on the best course of action.
-You consider the advice, but ultimatly, you make the final decision.
+There is an Inflection Point that the company is facing. You have consulted with an external Advisor.
+You consider the Advice, but ultimatly, you make the final decision.
 
 
-[TASK]Make a high-level decision, and delegate expected outcomes to your C-suite team.
+[TASK]Deliberate on the advice.
+Make a high-level decision.
+Delegate expected outcomes to your C-suite team.
 
 ** Provide your response in the following JSON format: **
 
 {{
+  "deliberation": "Your one line deliberation on the advice",
   "decision": "Your high-level decision",
   "assignments": {{
     "CTO": "Expected outcome from CTO",
@@ -33,16 +36,17 @@ You consider the advice, but ultimatly, you make the final decision.
 ${BUSINESS_OVERVIEW}
 
 
-Inflection Point: 
+# Inflection Point: 
 {situation}
 
 
-Consultant Advice: 
+# Advisor: 
 {userAdvice}
 `);
 
 const outputParser = StructuredOutputParser.fromZodSchema(
   z.object({
+    deliberation: z.string(),
     decision: z.string(),
     assignments: z.object({
       CTO: z.string(),

@@ -3,6 +3,7 @@ import { generateScenario } from './scenarioGenerator';
 import { calculateNewKPIs } from './kpiCalculator';
 import { runSimulation } from '../agents/agentManager';
 import { analyzeImpact } from './impactAnalysis';
+import { generateSummary } from './summaryGenerator';
 
 // Define a type for generator messages
 type GeneratorMessage =
@@ -26,7 +27,6 @@ export class BusinessEngine {
       content: "running simulation",
       cycleNumber: currentCycle, // Assign cycleNumber
     };
-    simulationMessages.push(simulationGroupMessage);
     yield simulationGroupMessage;
 
     console.log('[BusinessEngine] Running business cycle');
@@ -69,6 +69,24 @@ export class BusinessEngine {
     console.log('[BusinessEngine] New KPIs:', JSON.stringify(newKPIs, null, 2));
     yield { type: 'kpis', content: newKPIs };
 
+
+    //TODO generate summary of simulation
+
+    // Generate summary of simulation
+    console.log('[BusinessEngine] Generating summary of simulation');
+    const simplifiedMessages = simulationMessages.map(msg => `${msg.name || msg.role}: ${msg.content}`);
+    const summary = await generateSummary(gameState.currentSituation, userInput, simplifiedMessages);
+    console.log('[BusinessEngine] Simulation summary:', summary);
+
+    // Add system message with summary
+    const summaryMessage: Message = {
+      role: 'system',
+      content: summary,
+      name: 'Simulation Sumamry',
+      cycleNumber: currentCycle, // Assign cycleNumber
+    };
+    yield summaryMessage;
+    simulationMessages.push(summaryMessage);
 
     // Add business cycle message
 
