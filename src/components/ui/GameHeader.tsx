@@ -6,9 +6,11 @@ import { startNewGame } from '@/lib/utils/api';
 
 const GameHeader: React.FC = () => {
   const [isOverviewOpen, setIsOverviewOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { dispatch } = useGameState();
 
   const handleNewGame = async () => {
+    setIsLoading(true);
     try {
       console.log('[GameHeader] Starting new game');
       const newGameState = await startNewGame();
@@ -16,6 +18,8 @@ const GameHeader: React.FC = () => {
       dispatch({ type: 'SET_GAME_STATE', payload: newGameState });
     } catch (error) {
       console.error('[GameHeader] Failed to start new game:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -25,9 +29,12 @@ const GameHeader: React.FC = () => {
         <h1 className="text-2xl font-bold">Universal Paperclips - Business Advice Simulation</h1>
         <button
           onClick={handleNewGame}
-          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+          disabled={isLoading}
+          className={`bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 ${
+            isLoading ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
         >
-          New Game
+          {isLoading ? 'Starting...' : 'New Game'}
         </button>
       </div>
       <button 

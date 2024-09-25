@@ -12,7 +12,8 @@ type Action =
   | { type: GameActionType.SetCurrentCycle; payload: number }
   | { type: GameActionType.SetCurrentSituation; payload: string }
   | { type: GameActionType.ResetGame }
-  | { type: GameActionType.SetGameState; payload: GameState };
+  | { type: GameActionType.SetGameState; payload: GameState }
+  | { type: 'SET_GAME_STATE'; payload: GameState };
 
 const initialState: GameState = {
   currentCycle: 1,
@@ -48,6 +49,8 @@ const gameReducer = (state: GameState, action: Action): GameState => {
       return initialState;
     case GameActionType.SetGameState:
       return typeof action.payload === 'string' ? JSON.parse(action.payload) : action.payload;
+    case 'SET_GAME_STATE':
+      return action.payload;
     default:
       return state;
   }
