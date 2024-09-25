@@ -18,11 +18,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
       case 'user':
         return 'bg-indigo-600';
       case 'simulation':
-        return message.name === 'Outcome' ? 'bg-gray-700' : 'bg-purple-800';
-      case 'CTO':
-        return 'bg-blue-600';
-      case 'CFO':
-        return 'bg-green-600';
+        return message.name === 'Outcome' ? 'bg-gray-700' : message.name === 'CEO'? 'bg-purple-800': 'bg-purple-800 bg-opacity-50';
+    }
+    switch (message.name) {
+      case 'CEO':
+        return 'bg-purple-800';
       default:
         return 'bg-gray-700';
     }
@@ -38,7 +38,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
       <div
         className={`max-w-3/4 p-3 rounded-lg shadow-md text-white ${getBubbleStyle()}`}
       >
-        {isSimulation && message.name && (
+        {message.name && (
           <p className="text-xs font-bold mb-1 text-gray-200">{message.name}</p>
         )}
         <ReactMarkdown className="text-sm whitespace-pre-wrap">

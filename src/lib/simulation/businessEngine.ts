@@ -20,6 +20,15 @@ export class BusinessEngine {
 
     const currentCycle = gameState.currentCycle;
 
+    const messageRecieved: Message = {
+      role: 'system',
+      name: 'CEO',
+      content: "Thank you for your advice. We will discuss internally and take action.",
+      cycleNumber: currentCycle, // Assign cycleNumber
+    };
+    simulationMessages.push(messageRecieved);
+    yield messageRecieved;
+
     // Add simulation group message with cycleNumber
     const simulationGroupMessage: Message = {
       role: 'simulation_group',
