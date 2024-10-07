@@ -42,6 +42,12 @@ const KPIChart: React.FC<KPIChartProps> = ({ title, data, category, color, value
     );
   };
 
+  // Prepare data for the chart, including cycle number
+  const chartData = data.map((item, index) => ({
+    cycle: index + 1,
+    [category]: item[category]
+  }));
+
   return (
     <Card className="bg-gray-900 border border-purple-700 shadow-lg p-3">
       <Flex flexDirection="col" alignItems="start" className="space-y-1">
@@ -58,7 +64,7 @@ const KPIChart: React.FC<KPIChartProps> = ({ title, data, category, color, value
       </Flex>
       <AreaChart
         className="h-16 mt-2"
-        data={data}
+        data={chartData}
         index="cycle"
         categories={[category]}
         colors={[chartColors[color as keyof typeof chartColors]]}
@@ -70,8 +76,10 @@ const KPIChart: React.FC<KPIChartProps> = ({ title, data, category, color, value
         showAnimation={true}
         curveType="monotone"
         theme={{
-          chart: { backgroundColor: 'transparent' },
-          tooltip: { backgroundColor: '#1F2937', color: '#F3F4F6' },
+          tooltip: {
+            backgroundColor: '#1F2937',
+            color: '#F3F4F6',
+          },
         }}
       />
     </Card>

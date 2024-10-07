@@ -65,7 +65,6 @@ export class BusinessEngine {
   
 
     console.log('[BusinessEngine] Calculating new KPIs');
-    const currentKPIs = gameState.kpiHistory[gameState.kpiHistory.length - 1];
     const newKPIs = await calculateNewKPIs(gameState, simulationMessages, impactAnalysis.content);
 
     // Calculate share price
@@ -88,7 +87,7 @@ export class BusinessEngine {
     // Generate summary of simulation
     console.log('[BusinessEngine] Generating summary of simulation');
     const simplifiedMessages = simulationMessages.map(msg => `${msg.name || msg.role}: ${msg.content}`);
-    const summary = await generateSummary(gameState.currentSituation, userInput, simplifiedMessages);
+    const summary = await generateSummary(gameState.currentSituation, userInput, simplifiedMessages, orders);
     console.log('[BusinessEngine] Simulation summary:', summary);
 
     // Add system message with summary

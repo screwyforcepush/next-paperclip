@@ -43,7 +43,7 @@ const Dashboard: React.FC = () => {
               data={kpiHistory}
               category="revenue"
               color="purple"
-              valueFormatter={(value) => `$${value.toLocaleString()}`}
+              valueFormatter={(value) => `$${Math.round(value).toLocaleString()}`}
             />
             <KPIChart
               title="Profit Margin"
