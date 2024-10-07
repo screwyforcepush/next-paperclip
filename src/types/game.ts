@@ -5,6 +5,7 @@ export interface KPI {
   innovationIndex: number;
   clvCacRatio: number;
   productionEfficiencyIndex: number;
+  sharePrice: number;
 }
 
 export interface Decision {
@@ -23,7 +24,7 @@ export interface Message {
   role: string;
   content: string;
   name?: string;
-  cycleNumber?: number; // Include this property
+  cycleNumber?: number;
 }
 
 export interface Change {

@@ -4,6 +4,7 @@ import { calculateNewKPIs } from './kpiCalculator';
 import { runSimulation } from '../agents/agentManager';
 import { analyzeImpact } from './impactAnalysis';
 import { generateSummary } from './summaryGenerator';
+import { calculateSharePrice } from './sharePriceCalculator';
 
 // Define a type for generator messages
 type GeneratorMessage =
@@ -67,10 +68,22 @@ export class BusinessEngine {
     const currentKPIs = gameState.kpiHistory[gameState.kpiHistory.length - 1];
     const newKPIs = await calculateNewKPIs(gameState, simulationMessages, impactAnalysis.content);
 
+    // Calculate share price
+    console.log('[BusinessEngine] Calculating share price');
+    const updatedKPIHistory = [...gameState.kpiHistory, newKPIs];
+    const { orders, newSharePrice } = calculateSharePrice(updatedKPIHistory);
+
+    // Add share price to newKPIs
+    const newKPIsWithSharePrice: KPI = {
+      ...newKPIs,
+      sharePrice: newSharePrice,
+    };
+
     // do this after new KPIs are calculated as we are passing in impactAnalysis separately
     simulationMessages.push(impactAnalysis);
-    console.log('[BusinessEngine] New KPIs:', JSON.stringify(newKPIs, null, 2));
-    yield { type: 'kpis', content: newKPIs };
+
+    console.log('[BusinessEngine] New KPIs:', JSON.stringify(newKPIsWithSharePrice, null, 2));
+    yield { type: 'kpis', content: newKPIsWithSharePrice };
 
     // Generate summary of simulation
     console.log('[BusinessEngine] Generating summary of simulation');
@@ -135,6 +148,12 @@ export class BusinessEngine {
     simulationMessages.push(adviceMessage);
     yield adviceMessage;
 
-    return gameState; // Return the updated game state
+    return {
+      ...gameState,
+      currentCycle: newCycle,
+      currentSituation: newScenario,
+      kpiHistory: [...gameState.kpiHistory, newKPIsWithSharePrice],
+      messages: [...gameState.messages, ...simulationMessages],
+    };
   }
 }

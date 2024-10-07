@@ -15,41 +15,65 @@ async function calculateKPIImpact(
   simulation: string
 ): Promise<number> {
   const kpiImpactSchema = z.object({
+    impactAnalysis: z.string(),
     impactScore: z.number().int().min(-5).max(5),
   });
 
   const outputParser = StructuredOutputParser.fromZodSchema(kpiImpactSchema);
 
   const kpiCalculatorPrompt = PromptTemplate.fromTemplate(`
-You are an AI business analyst specializing in {kpiName} impact analysis. Universal Paperclips business was faced with an Inflection Point.
+You are a Business Analyst specializing in {kpiName} impact analysis. 
+[GROK]: 1. [DataCollect]:  1a. FactGathering→1b,2a 1b. IntuitHunch→1c,2c 2. [Contextualize]:  2a. BackgroundInfo→2b,2c,3a 2b. ExperienceMapping→2c,3b 2c. InsightCluster→3a,3b 3. [Interpret]:  3a. Rationalize→3b,4a 3b. Emote→3c,4b 4. [Understand]:  4a. ConceptMapping→4b,5a 4b. Empathize→4c, 5c 5. [Drink]: 5a. Internalize→5b,1a 5b. Saturation→5c,1b 5c. Grok→1c,2c
+
+Universal Paperclips business was faced with an Inflection Point.
 The C-Suite took Action, which resulted in an Outcome.
 
-[TASK]Analyse the series of events and estimate the impact to {kpiName} KPI. Respond with a single Impact Score between -5 and 5.
+[TASK]Analyse the Inflection Point, C-suite Actions and the resulting Outcome, then estimate the impact to {kpiName} KPI. 
+*Adhere to Response Schema*
+
+impactAnalysis and {kpiName} impactScore integer on a scale of -5 to 5.
 Where:
--5: Extreme decrease
--4: Significant decrease
--3: Moderate decrease
--2: Slight decrease
--1: Minimal decrease
-0: No change
-1: Minimal increase
-2: Slight increase
-3: Moderate increase
-4: Significant increase
-5: Extreme increase
+-5 = Extreme negative impact
+-4 = Significant negative impact
+-3 = Moderate negative impact
+-2 = Slight negative impact
+-1 = Minimal negative impact
+0 = No impact
+1 = Minimal positive impact
+2 = Slight positive impact
+3 = Moderate positive impact
+4 = Significant positive impact
+5 = Extreme positive impact
 [TASK]
 
 # Inflection Point:
 {currentSituation}
 
-# C-suite Action:
+# C-suite Actions:
 {simulationMessages}
 
 # Outcome:
 {simulation}
 
-{format_instructions}
+
+
+# Response Schema:
+** Provide your response in the following JSON format: **
+
+{{
+  "impactAnalysis": "Analysis of the impact to {kpiName}",
+  "impactScore": "integer between -5 and 5"
+}}
 `);
+
+  // Log the compiled prompt
+  const compiledPrompt = await kpiCalculatorPrompt.format({
+    currentSituation,
+    kpiName,
+    simulationMessages: simplifiedMessages,
+    simulation,
+  });
+  console.log("[calculateKPIImpact] Compiled prompt:", compiledPrompt);
 
   const kpiCalculatorChain = RunnableSequence.from([
     kpiCalculatorPrompt,
@@ -62,19 +86,19 @@ Where:
     kpiName,
     simulationMessages: simplifiedMessages,
     simulation,
-    format_instructions: outputParser.getFormatInstructions(),
   });
 
+  console.log(`[calculateKPIImpact] Impact analysis for ${kpiName}: ${response.impactAnalysis}`);
   console.log(`[calculateKPIImpact] Impact score for ${kpiName}: ${response.impactScore}`);
 
   // Convert impact score to percentage change
   const multiplier = response.impactScore>0?1:-1;
-  
-  const percentageChange = response.impactScore * multiplier; 
+  const rndMultiplier = Math.random() * multiplier;
+  const percentageChange = response.impactScore * (response.impactScore * rndMultiplier); 
   console.log(`[calculateKPIImpact] Percentage change for ${kpiName}: ${percentageChange}%`);
 
   // Apply percentage change to the current value
-  const newValue = Number((currentValue * (1 + percentageChange / 100)).toFixed(4));
+  const newValue = currentValue * (1 + percentageChange / 100);
   console.log(`[calculateKPIImpact] New value for ${kpiName}: ${newValue}`);
 
   return newValue;
@@ -100,17 +124,19 @@ export async function calculateNewKPIs(
     const newKPIs: Partial<KPI> = {};
 
     for (const [kpiName, currentValue] of Object.entries(currentKPIs)) {
-      console.log(`[calculateNewKPIs] Calculating impact for ${kpiName}. Current value: ${currentValue}`);
-      const newValue = await calculateKPIImpact(
-        kpiName,
-        gameState.currentSituation,
-        currentValue,
-        simplifiedMessages,
-        simulation
-      );
-      newKPIs[kpiName as keyof KPI] = newValue;
-      console.log(`[calculateNewKPIs] New value for ${kpiName}: ${newValue}`);
-      console.log(`[calculateNewKPIs] Percentage change for ${kpiName}: ${((newValue - currentValue) / currentValue * 100).toFixed(2)}%`);
+      if (kpiName !== 'sharePrice') {
+        console.log(`[calculateNewKPIs] Calculating impact for ${kpiName}. Current value: ${currentValue}`);
+        const newValue = await calculateKPIImpact(
+          kpiName,
+          gameState.currentSituation,
+          currentValue,
+          simplifiedMessages,
+          simulation
+        );
+        newKPIs[kpiName as keyof KPI] = newValue;
+        console.log(`[calculateNewKPIs] New value for ${kpiName}: ${newValue}`);
+        console.log(`[calculateNewKPIs] Percentage change for ${kpiName}: ${((newValue - currentValue) / currentValue * 100).toFixed(2)}%`);
+      }
     }
 
     console.log("[calculateNewKPIs] All new KPIs calculated:", JSON.stringify(newKPIs, null, 2));

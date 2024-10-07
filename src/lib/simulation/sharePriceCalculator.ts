@@ -1,4 +1,4 @@
-import { KPI, Order, Change } from '../../types/game'; // Assuming these types are defined in game.ts
+import { KPI, Order } from '../../types/game'; // Assuming these types are defined in game.ts
 
 function analyzeKPIs(kpiArray: KPI[]): Order[] {
     const orders: Order[] = [];
@@ -151,6 +151,22 @@ function analyzeKPIs(kpiArray: KPI[]): Order[] {
     return orders;
 }
 
+function calculateSharePrice(kpiArray: KPI[]): { orders: Order[], newSharePrice: number } {
+    const orders = analyzeKPIs(kpiArray);
+    const buyOrders = orders.filter(order => order.action === 'Buy').length;
+    const sellOrders = orders.filter(order => order.action === 'Sell').length;
+    
+    const currentKPIs = kpiArray[kpiArray.length - 1];
+    const previousSharePrice = currentKPIs.sharePrice || 100; // Default to 100 if not set
+    const sharePriceChange = (buyOrders - sellOrders) * 0.01; // 1% change per net order
+    const newSharePrice = Number((previousSharePrice * (1 + sharePriceChange)).toFixed(2));
+
+    return { orders, newSharePrice };
+}
+
+// Export both functions
+export { analyzeKPIs, calculateSharePrice };
+
 // Helper functions to improve readability and reduce duplication
 function calculateAverageChange(changes: Change[], property: keyof Change): number {
     return changes.reduce((sum, change) => sum + change[property], 0) / changes.length;
@@ -159,6 +175,3 @@ function calculateAverageChange(changes: Change[], property: keyof Change): numb
 function isConsistentTrend(changes: Change[], property: keyof Change, isPositive: boolean): boolean {
     return changes.every(change => isPositive ? change[property] > 0 : change[property] < 0);
 }
-
-// Export the function if it's used in other files
-export { analyzeKPIs };

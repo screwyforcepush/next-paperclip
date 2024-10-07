@@ -26,7 +26,7 @@ const CompanyOverview: React.FC<CompanyOverviewProps> = ({ companyName }) => {
 
   const data = kpiHistory.map((kpi, index) => ({
     cycle: index + 1,
-    price: kpi.revenue / 1000
+    price: kpi.sharePrice
   }));
 
   const formatChange = (change: number) => {
