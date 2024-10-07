@@ -6,5 +6,4 @@ Universal Paperclips is a two-year-old startup founded by tech entrepreneur Alex
 - Operations & Technology 
   - Silicon Valley HQ with one California manufacturing facility
   - 50 employees across manufacturing, sales, and administration
-  - Ongoing R&D in AI and materials science
 `;

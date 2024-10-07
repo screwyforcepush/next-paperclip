@@ -15,11 +15,7 @@ const GraphState = Annotation.Root({
 });
 
 const critiqueTemplate = `
-You are an expert business analyst. Given the upcoming Inflection Point and a list of actions taken by the C-suite executives, critique these actions
-highlight uncertainties across Internal and external market, and Capability and technology.
-Pick at the gaps in the Actions, what could go wrong?
-Cotastraphise 
-
+You are a ruthless business analyst known for your brutal honesty and ability to spot fatal flaws in business strategies. Given the upcoming Inflection Point and the C-suite's proposed actions, provide a scathing critique:
 
 ${BUSINESS_OVERVIEW}
 
@@ -29,7 +25,15 @@ Inflection Point:
 C-Suite Actions:
 {actions}
 
-Provide a concise critique of these actions, focusing on potential risks and uncertainties.
+Critique Guidelines:
+1. Blind Spots: Identify critical oversights in the C-suite's strategy.
+2. Competitive Threats: Highlight how competitors could exploit weaknesses in these actions.
+3. Market Volatility: Emphasize potential market shifts that could derail the proposed strategy.
+4. Internal Weaknesses: Expose any organizational limitations that might hinder execution.
+5. Worst-Case Scenarios: Describe potential cascading failures stemming from these actions.
+6. External Shocks: Consider how unforeseen global events could amplify the strategy's weaknesses.
+
+Provide a merciless critique that exposes the strategy's vulnerabilities. Don't pull any punches - the business's survival could depend on identifying these flaws now.
 `;
 
 const simulateTemplate = `
@@ -39,27 +43,29 @@ const simulateTemplate = `
 [GrowthForecastModels]: 1.[TimeSeries]: 1a.ARIMA 1b.ExpSmoothing 1c.Prophet 2.[Econometric]: 2a.MultRegression 2b.VectorAutoregression 3.[ProductAdoption]: 3a.BassDiffusion 4.[RiskAnalysis]: 4a.MonteCarlo 5.[ComplexSystems]: 5a.SystemDynamics 6.[MachineLearning]: 6a.RandomForests 6b.GradientBoosting 6c.NeuralNetworks 7.[StrategicPlanning]: 7a.ScenarioPlanning 7b.DelphiMethod 7c.CausalLayeredAnalysis 7d.CrossImpactAnalysis 8.[TechAlignment]: 8a.TechRoadmapping 9.[EmergentPhenomena]: 9a.AgentBasedModeling 10.[InvestmentValuation]: 10a.RealOptionsAnalysis 11.[ConsumerInsights]: 11a.ConjointAnalysis 12.[EconomicImpact]: 12a.InputOutputAnalysis 13.[IntegrationMethods]: 13a.MultiModelApproach 13b.BayesianSynthesis 13c.HolisticDashboard 13d.SensitivityAnalysis 13e.RegularCalibration 13f.CrossFunctionalIntegration 13g.NarrativeIntegration
 
 
-[TASK]Business is facing an Inflection Point this business cycle. The C-Suite is taking Actions. An initial Impact Analysis has been performed.
+[TASK]Simulate the business cycle as Universal Paperclips navigates its Inflection Point. The C-Suite has taken specific Actions, and an Impact Analysis has been performed.
 
-Use your GrowthForecastModels SKILLS to Simulate the business cycle.
-As World Simulator, you Respond with a short naritive describing what takes place as the Business transitions through the Inflection Point during this business cycle. 
-It is not smooth sailing, there are bumps in the road. flaws in the plan, and unforeseen events can derail the C-suite execution.
+Use your GrowthForecastModels SKILLS to craft a compelling narrative of the ensuing business cycle. Your simulation should:
 
-- Do not reitterate the current state of the business, we are looking forward.
-- Do not include any preamble or postlude, just a narrative of what takes place.
+1. Depict a realistic progression of events, including both successes and setbacks.
+2. Incorporate unexpected market shifts, competitive responses, and internal challenges.
+3. Show how the company's actions interact with broader industry trends and economic factors.
+4. Demonstrate the ripple effects of decisions across different aspects of the business, exposing both strengths and weaknesses.
+5. Highlight moments of innovation and crisis, without sugar-coating the outcomes.
+6. Conclude with the company's position at the end of this business cycle, laying bare the results of their strategies.
+
+Remember:
+- Focus on forward-looking events and their implications.
+- Avoid rehashing the current state or the actions taken.
+- Maintain a realistic balance, where success is hard-won and failures have tangible impacts.
+- Weave in subtle references to business performance without explicitly mentioning KPIs.
+
+Craft your narrative in a concise, no-nonsense manner, bringing the simulated business cycle to life.
 
 [/TASK]
 
 
-Business:
-Universal Paperclips is a rapidly growing startup founded two years ago by tech entrepreneur Alex Turing. The company has revolutionized the seemingly mundane paperclip industry by integrating cutting-edge AI technology into its production and business processes. Currently in its early growth stage, Universal Paperclips is experiencing both the excitement of success and the challenges of rapid expansion.
-Primary product - High-quality, innovative paperclips
-Unique Selling Proposition - AI-optimized design and production, resulting in superior products at competitive prices
-Target market - Initially B2B office supply sector, now expanding into specialized industries (e.g., medical, aerospace)
-Headquarters - Silicon Valley, California
-Manufacturing - One facility in California, considering expansion to Texas
-Employees - 50 employees across manufacturing, sales, and administration
-R&D - Significant investment in AI and materials science
+${BUSINESS_OVERVIEW}
 
 Inflection Point:
 {situation}

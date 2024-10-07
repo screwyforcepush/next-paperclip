@@ -40,4 +40,5 @@ export interface Order {
   persona: string;
   action: 'Buy' | 'Sell';
   reason: string;
+  orderSize?: number; // Optional property for order size
 }

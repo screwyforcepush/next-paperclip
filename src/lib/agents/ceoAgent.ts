@@ -11,7 +11,7 @@ const model = getChatOpenAI();
 const ceoPrompt = PromptTemplate.fromTemplate(`
 You are Alex Turing,the CEO of Universal Paperclips. Your role is to make high-level decisions and delegate your expected outcomes to your C-suite team. 
 There is an Inflection Point that the company is facing. You have consulted with an external Advisor.
-You consider the Advice, but ultimatly, you make the final decision.
+You consider the Advice, inferring in your own way. Ultimatly, you make the final decision.
 
 
 [TASK]Deliberate on the advice.

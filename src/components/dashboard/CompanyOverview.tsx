@@ -17,9 +17,9 @@ const CompanyOverview: React.FC<CompanyOverviewProps> = ({ companyName }) => {
 
   const currentCycle = isClient ? gameState.currentCycle : 0;
   const kpiHistory = isClient ? gameState.kpiHistory : [];
-  const latestSharePrice = kpiHistory.length > 0 ? kpiHistory[kpiHistory.length - 1].revenue / 1000 : 0;
-  const previousSharePrice = kpiHistory.length > 1 ? kpiHistory[kpiHistory.length - 2].revenue / 1000 : latestSharePrice;
-  const firstSharePrice = kpiHistory.length > 0 ? kpiHistory[0].revenue / 1000 : latestSharePrice;
+  const latestSharePrice = kpiHistory.length > 0 ? kpiHistory[kpiHistory.length - 1].sharePrice : 0;
+  const previousSharePrice = kpiHistory.length > 1 ? kpiHistory[kpiHistory.length - 2].sharePrice : latestSharePrice;
+  const firstSharePrice = kpiHistory.length > 0 ? kpiHistory[0].sharePrice : latestSharePrice;
 
   const changeFromPrevious = ((latestSharePrice - previousSharePrice) / previousSharePrice) * 100;
   const changeFromFirst = ((latestSharePrice - firstSharePrice) / firstSharePrice) * 100;
@@ -71,12 +71,6 @@ const CompanyOverview: React.FC<CompanyOverviewProps> = ({ companyName }) => {
             yAxisWidth={60}
             showLegend={false}
             curveType="monotone"
-            theme={{
-              chart: { backgroundColor: 'transparent' },
-              axis: { stroke: '#4B5563' },
-              grid: { stroke: '#374151' },
-              tooltip: { backgroundColor: '#1F2937', color: '#F3F4F6' },
-            }}
           />
         )}
       </Flex>

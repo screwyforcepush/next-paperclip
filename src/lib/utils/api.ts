@@ -32,7 +32,8 @@ export async function startNewGame(): Promise<GameState> {
         clvCacRatio: 2.0,
         productionEfficiencyIndex: 0.7,
         marketShare: 0.05,
-        innovationIndex: 0.6
+        innovationIndex: 0.6,
+        sharePrice: 20
       }],
       messages: [
         { role: 'system', content: "catface Welcome to Universal Paperclips! Let's start your journey as a business consultant." },

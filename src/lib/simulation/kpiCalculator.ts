@@ -66,15 +66,6 @@ Where:
 }}
 `);
 
-  // Log the compiled prompt
-  const compiledPrompt = await kpiCalculatorPrompt.format({
-    currentSituation,
-    kpiName,
-    simulationMessages: simplifiedMessages,
-    simulation,
-  });
-  console.log("[calculateKPIImpact] Compiled prompt:", compiledPrompt);
-
   const kpiCalculatorChain = RunnableSequence.from([
     kpiCalculatorPrompt,
     model,
