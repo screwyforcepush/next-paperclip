@@ -21,7 +21,7 @@ Delegate expected outcomes to your C-suite team.
 ** Provide your response in the following JSON format: **
 
 {{
-  "deliberation": "Your deliberation on the advice",
+  "deliberation": "Your briefdeliberation on the advice",
   "decision": "Your high-level decision",
   "assignments": {{
     "CTO": "Expected outcome from CTO",
