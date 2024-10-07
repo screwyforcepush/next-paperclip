@@ -1,10 +1,10 @@
-export interface KPIs {
+export interface KPI {
   revenue: number;
   profitMargin: number;
-  clvCacRatio: number;
-  productionEfficiencyIndex: number;
   marketShare: number;
   innovationIndex: number;
+  clvCacRatio: number;
+  productionEfficiencyIndex: number;
 }
 
 export interface Decision {
@@ -26,11 +26,17 @@ export interface Message {
   cycleNumber?: number; // Include this property
 }
 
-export interface KPI {
+export interface Change {
   revenue: number;
   profitMargin: number;
-  clvCacRatio: number;
-  productionEfficiencyIndex: number;
   marketShare: number;
   innovationIndex: number;
+  clvCacRatio: number;
+  productionEfficiencyIndex: number;
+}
+
+export interface Order {
+  persona: string;
+  action: 'Buy' | 'Sell';
+  reason: string;
 }

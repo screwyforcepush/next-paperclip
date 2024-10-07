@@ -68,11 +68,13 @@ Where:
   console.log(`[calculateKPIImpact] Impact score for ${kpiName}: ${response.impactScore}`);
 
   // Convert impact score to percentage change
-  const percentageChange = response.impactScore * 20; // Each point represents a 20% change
+  const multiplier = response.impactScore>0?1:-1;
+  
+  const percentageChange = response.impactScore * multiplier; 
   console.log(`[calculateKPIImpact] Percentage change for ${kpiName}: ${percentageChange}%`);
 
   // Apply percentage change to the current value
-  const newValue = currentValue * (1 + percentageChange / 100);
+  const newValue = Number((currentValue * (1 + percentageChange / 100)).toFixed(4));
   console.log(`[calculateKPIImpact] New value for ${kpiName}: ${newValue}`);
 
   return newValue;
