@@ -38,8 +38,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
       <div
         className={`max-w-3/4 p-3 rounded-lg shadow-md text-white ${getBubbleStyle()}`}
       >
-        {message.name && (
-          <p className="text-xs font-bold mb-1 text-gray-200">{message.name}</p>
+        {(message.name || isUser) && (
+          <p className="text-xs font-bold mb-1 text-gray-200">
+            {isUser ? "Advisor" : message.name}
+          </p>
         )}
         <ReactMarkdown className="text-sm whitespace-pre-wrap">
           {message.content}
