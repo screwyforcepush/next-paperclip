@@ -61,16 +61,16 @@ export class BusinessEngine {
     impactAnalysis.cycleNumber = currentCycle
     impactAnalysis.name = 'Outcome';
     yield impactAnalysis;
-    simulationMessages.push(impactAnalysis);
+  
 
     console.log('[BusinessEngine] Calculating new KPIs');
     const currentKPIs = gameState.kpiHistory[gameState.kpiHistory.length - 1];
-    const newKPIs = await calculateNewKPIs(currentKPIs, impactAnalysis.content);
+    const newKPIs = await calculateNewKPIs(gameState, simulationMessages, impactAnalysis.content);
+
+    // do this after new KPIs are calculated as we are passing in impactAnalysis separately
+    simulationMessages.push(impactAnalysis);
     console.log('[BusinessEngine] New KPIs:', JSON.stringify(newKPIs, null, 2));
     yield { type: 'kpis', content: newKPIs };
-
-
-    //TODO generate summary of simulation
 
     // Generate summary of simulation
     console.log('[BusinessEngine] Generating summary of simulation');

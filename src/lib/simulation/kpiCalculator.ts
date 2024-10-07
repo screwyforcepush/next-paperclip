@@ -1,4 +1,4 @@
-import { KPI } from '@/types/game'; // Add this import
+import { KPI, GameState, Message } from '@/types/game'; // Update import
 import { getChatOpenAI } from '@/lib/utils/openaiConfig';
 import { PromptTemplate } from "@langchain/core/prompts";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
@@ -7,68 +7,113 @@ import { z } from "zod";
 
 const model = getChatOpenAI();
 
-const kpiImpactSchema = z.object({
-  revenue: z.number(),
-  profitMargin: z.number(),
-  clvCacRatio: z.number(),
-  productionEfficiencyIndex: z.number(),
-  marketShare: z.number(),
-  innovationIndex: z.number(),
-});
+async function calculateKPIImpact(
+  kpiName: string,
+  currentSituation: string,
+  currentValue: number,
+  simplifiedMessages: string,
+  simulation: string
+): Promise<number> {
+  const kpiImpactSchema = z.object({
+    impactScore: z.number().int().min(-5).max(5),
+  });
 
-const outputParser = StructuredOutputParser.fromZodSchema(kpiImpactSchema);
+  const outputParser = StructuredOutputParser.fromZodSchema(kpiImpactSchema);
 
-const kpiCalculatorPrompt = PromptTemplate.fromTemplate(`
-You are an AI business analyst specializing in KPI impact analysis. Given the current KPIs and a simulation result, determine the percentage change for each KPI.
+  const kpiCalculatorPrompt = PromptTemplate.fromTemplate(`
+You are an AI business analyst specializing in {kpiName} impact analysis. Universal Paperclips business was faced with an Inflection Point.
+The C-Suite took Action, which resulted in an Outcome.
 
-Current KPIs:
-{currentKPIs}
+[TASK]Analyse the series of events and estimate the impact to {kpiName} KPI. Respond with a single Impact Score between -5 and 5.
+Where:
+-5: Extreme decrease
+-4: Significant decrease
+-3: Moderate decrease
+-2: Slight decrease
+-1: Minimal decrease
+0: No change
+1: Minimal increase
+2: Slight increase
+3: Moderate increase
+4: Significant increase
+5: Extreme increase
+[TASK]
 
-Simulation result:
+# Inflection Point:
+{currentSituation}
+
+# C-suite Action:
+{simulationMessages}
+
+# Outcome:
 {simulation}
-
-Analyze the simulation result and provide the percentage changes for each KPI. Use positive numbers for increases and negative numbers for decreases.
 
 {format_instructions}
 `);
 
-const kpiCalculatorChain = RunnableSequence.from([
-  kpiCalculatorPrompt,
-  model,
-  outputParser
-]);
+  const kpiCalculatorChain = RunnableSequence.from([
+    kpiCalculatorPrompt,
+    model,
+    outputParser
+  ]);
 
-function adjustKPIs(currentKPIs: KPI, impactPercentages: KPI): KPI {
-  return {
-    revenue: currentKPIs.revenue * (1 + impactPercentages.revenue / 100),
-    profitMargin: currentKPIs.profitMargin * (1 + impactPercentages.profitMargin / 100),
-    clvCacRatio: currentKPIs.clvCacRatio * (1 + impactPercentages.clvCacRatio / 100),
-    productionEfficiencyIndex: currentKPIs.productionEfficiencyIndex * (1 + impactPercentages.productionEfficiencyIndex / 100),
-    marketShare: currentKPIs.marketShare * (1 + impactPercentages.marketShare / 100),
-    innovationIndex: currentKPIs.innovationIndex * (1 + impactPercentages.innovationIndex / 100),
-  };
+  const response = await kpiCalculatorChain.invoke({
+    currentSituation,
+    kpiName,
+    simulationMessages: simplifiedMessages,
+    simulation,
+    format_instructions: outputParser.getFormatInstructions(),
+  });
+
+  console.log(`[calculateKPIImpact] Impact score for ${kpiName}: ${response.impactScore}`);
+
+  // Convert impact score to percentage change
+  const percentageChange = response.impactScore * 20; // Each point represents a 20% change
+  console.log(`[calculateKPIImpact] Percentage change for ${kpiName}: ${percentageChange}%`);
+
+  // Apply percentage change to the current value
+  const newValue = currentValue * (1 + percentageChange / 100);
+  console.log(`[calculateKPIImpact] New value for ${kpiName}: ${newValue}`);
+
+  return newValue;
 }
 
-export async function calculateNewKPIs(currentKPIs: KPI, simulation: string): Promise<KPI> {
+export async function calculateNewKPIs(
+  gameState: GameState,
+  simulationMessages: Message[],
+  simulation: string
+): Promise<KPI> {
   try {
     console.log("[calculateNewKPIs] Starting KPI calculation");
-    console.log("[calculateNewKPIs] Current KPIs:", JSON.stringify(currentKPIs, null, 2));
-    console.log("[calculateNewKPIs] Simulation:", simulation);
+    console.log("[calculateNewKPIs] Current Situation:", gameState.currentSituation);
+    console.log("[calculateNewKPIs] Current KPIs:", JSON.stringify(gameState.kpiHistory[gameState.kpiHistory.length - 1], null, 2));
+    console.log("[calculateNewKPIs] Simulation Messages:", JSON.stringify(simulationMessages, null, 2));
+    console.log("[calculateNewKPIs] Final Simulation Result:", simulation);
 
-    const response = await kpiCalculatorChain.invoke({
-      currentKPIs: JSON.stringify(currentKPIs, null, 2),
-      simulation: simulation,
-      format_instructions: outputParser.getFormatInstructions(),
-    });
+    const currentKPIs = gameState.kpiHistory[gameState.kpiHistory.length - 1];
+    const simplifiedMessages = simulationMessages
+      .map(msg => `${msg.name || msg.role}: ${msg.content}`)
+      .join('\n');
 
-    if (!kpiImpactSchema.safeParse(response).success) {
-      throw new Error('Invalid response format from AI model');
+    const newKPIs: Partial<KPI> = {};
+
+    for (const [kpiName, currentValue] of Object.entries(currentKPIs)) {
+      console.log(`[calculateNewKPIs] Calculating impact for ${kpiName}. Current value: ${currentValue}`);
+      const newValue = await calculateKPIImpact(
+        kpiName,
+        gameState.currentSituation,
+        currentValue,
+        simplifiedMessages,
+        simulation
+      );
+      newKPIs[kpiName as keyof KPI] = newValue;
+      console.log(`[calculateNewKPIs] New value for ${kpiName}: ${newValue}`);
+      console.log(`[calculateNewKPIs] Percentage change for ${kpiName}: ${((newValue - currentValue) / currentValue * 100).toFixed(2)}%`);
     }
 
-    const newKPIs = adjustKPIs(currentKPIs, response as KPI);
-    console.log("[calculateNewKPIs] New KPIs calculated:", JSON.stringify(newKPIs, null, 2));
+    console.log("[calculateNewKPIs] All new KPIs calculated:", JSON.stringify(newKPIs, null, 2));
 
-    return newKPIs;
+    return newKPIs as KPI;
   } catch (error) {
     console.error("[calculateNewKPIs] Error calculating new KPIs:", error);
     if (error instanceof Error) {
@@ -76,6 +121,6 @@ export async function calculateNewKPIs(currentKPIs: KPI, simulation: string): Pr
       console.error("[calculateNewKPIs] Error stack:", error.stack);
     }
     // In case of an error, return the current KPIs unchanged
-    return currentKPIs;
+    return gameState.kpiHistory[gameState.kpiHistory.length - 1];
   }
 }
