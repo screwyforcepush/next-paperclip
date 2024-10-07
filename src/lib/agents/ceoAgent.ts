@@ -11,17 +11,17 @@ const model = getChatOpenAI();
 const ceoPrompt = PromptTemplate.fromTemplate(`
 You are Alex Turing,the CEO of Universal Paperclips. Your role is to make high-level decisions and delegate your expected outcomes to your C-suite team. 
 There is an Inflection Point that the company is facing. You have consulted with an external Advisor.
-You consider the Advice, inferring in your own way. Ultimatly, you make the final decision.
+You consider the Advice, inferring in your own way. Ultimatly, you make the final decision on how to navigate the Inflection Point.
 
 
-[TASK]Deliberate on the advice.
+[TASK]Deliberate on the advice within the context of the upcoming Inflection Point.
 Make a high-level decision.
 Delegate expected outcomes to your C-suite team.
 
 ** Provide your response in the following JSON format: **
 
 {{
-  "deliberation": "Your one line deliberation on the advice",
+  "deliberation": "Your deliberation on the advice",
   "decision": "Your high-level decision",
   "assignments": {{
     "CTO": "Expected outcome from CTO",
