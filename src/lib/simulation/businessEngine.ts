@@ -34,8 +34,17 @@ export class BusinessEngine {
     console.log('[BusinessEngine] Current game state:', JSON.stringify(gameState, null, 2));
     console.log('[BusinessEngine] User input:', userInput);
 
+    // Find the most recent summary
+    const lastSummary = [...gameState.messages]
+      .reverse()
+      .find(msg => msg.name === "Simulation Summary" || msg.name === "Simulation Sumamry");
+    console.log('[BusinessEngine] Last summary:', lastSummary);
     console.log('[BusinessEngine] Starting simulation');
-    const simulationGenerator = runSimulation(gameState.currentSituation, userInput);
+    const simulationGenerator = runSimulation(
+      gameState.currentSituation, 
+      userInput,
+      lastSummary ? lastSummary.content : undefined
+    );
 
     console.log('[BusinessEngine] Entering simulation loop');
     for await (const message of simulationGenerator) {
@@ -94,7 +103,7 @@ export class BusinessEngine {
     const summaryMessage: Message = {
       role: 'system',
       content: summary,
-      name: 'Simulation Sumamry',
+      name: 'Simulation Summary', // Fixed typo here
       cycleNumber: currentCycle, // Assign cycleNumber
     };
     yield summaryMessage;

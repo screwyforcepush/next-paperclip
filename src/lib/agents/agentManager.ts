@@ -25,6 +25,10 @@ const AgentState = Annotation.Root({
     default: () => [],
     reducer: (x, y) => Array.from(new Set([...x, ...y])),
   }),
+  previousSummary: Annotation<string | undefined>({
+    default: () => undefined,
+    value: (x, y) => y ?? x,
+  }),
 });
 
 // Define the type for node names
@@ -59,6 +63,7 @@ const ceoNode = async (state: typeof AgentState.State) => {
       situation: state.situation,
       userAdvice: state.userAdvice,
       messages: state.messages,
+      previousSummary: state.previousSummary,
     });
     console.log("[ceoNode] CEO response:", ceoResponse);
     const reponse_string = ceoResponse.deliberation + "\n" + ceoResponse.decision;
@@ -88,10 +93,15 @@ const createCSuiteNode = (role: NodeNames, agent: (params: any) => Promise<{ mes
     return { messages: [], completedAgents: state.completedAgents };
   };
 
-export async function* runSimulation(situation: string, userAdvice: string) {
+export async function* runSimulation(
+  situation: string, 
+  userAdvice: string, 
+  previousSummary?: string
+) {
   console.log("[runSimulation] Starting simulation");
   console.log("[runSimulation] Situation:", situation);
   console.log("[runSimulation] User advice:", userAdvice);
+  console.log("[runSimulation] Previous summary:", previousSummary);
 
   const workflow = new StateGraph(AgentState);
 
@@ -142,6 +152,7 @@ export async function* runSimulation(situation: string, userAdvice: string) {
       messages: [],
       ceoDecision: null,
       completedAgents: [],
+      previousSummary, // Add this line
     }, {
       streamMode: "values",
     });

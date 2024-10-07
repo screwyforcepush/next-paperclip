@@ -14,7 +14,7 @@ There is an Inflection Point that the company is facing. You have consulted with
 You consider the Advice, inferring in your own way. Ultimatly, you make the final decision on how to navigate the Inflection Point.
 
 
-[TASK]Deliberate on the advice within the context of the upcoming Inflection Point.
+[TASK]Deliberate on the advice within the context of the upcoming Inflection Point, and learnings from previous decisions.
 Make a high-level decision.
 Delegate expected outcomes to your C-suite team.
 
@@ -32,13 +32,14 @@ Delegate expected outcomes to your C-suite team.
 }}
 [/TASK]
 
-
 ${BUSINESS_OVERVIEW}
+{previousSummary}
+
+
 
 
 # Inflection Point: 
 {situation}
-
 
 # Advisor: 
 {userAdvice}
@@ -67,17 +68,24 @@ export async function ceoAgent(state: {
   situation: string;
   userAdvice: string;
   messages: BaseMessage[];
+  previousSummary?: string;
 }) {
+  const previousSummaryText = state.previousSummary
+    ? `Previous Decision Outcome:\n${state.previousSummary}\n`
+    : "";
 
-      // Log the resolved prompt
+  // Log the resolved prompt
   const resolvedPrompt = await ceoPrompt.format({
     situation: state.situation,
     userAdvice: state.userAdvice,
+    previousSummary: previousSummaryText,
   });
   console.log("[ceoAgent] Resolved prompt:", resolvedPrompt);
+  
   const response = await ceoChain.invoke({
     situation: state.situation,
     userAdvice: state.userAdvice,
+    previousSummary: previousSummaryText,
   });
   console.log("[ceoAgent] User advice:", state.userAdvice);
 
