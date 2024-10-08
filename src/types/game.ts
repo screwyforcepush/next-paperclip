@@ -16,6 +16,7 @@ export interface Decision {
 export interface GameState {
   currentCycle: number;
   currentSituation: string;
+  businessOverview: string;
   kpiHistory: KPI[];
   messages: Message[];
 }

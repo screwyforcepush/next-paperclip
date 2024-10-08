@@ -3,15 +3,18 @@ import { generateScenario } from './scenarioGenerator';
 import { calculateNewKPIs } from './kpiCalculator';
 import { runSimulation } from '../agents/agentManager';
 import { analyzeImpact } from './impactAnalysis';
-import { generateSummary } from './summaryGenerator';
+import { generateSummary, updateOverview } from './summaryGenerator';
 import { calculateSharePrice } from './sharePriceCalculator';
+import { BUSINESS_OVERVIEW } from '@lib/constants/business'; // Add this import
+
 
 // Define a type for generator messages
 type GeneratorMessage =
   | Message
   | { type: 'kpis'; content: KPI }
   | { role: 'business_cycle'; content: string }
-  | { role: 'system'; content: string };
+  | { role: 'system'; content: string }
+  | { type: 'business_overview'; content: string };
 
 export class BusinessEngine {
   static async *runBusinessCycle(
@@ -21,6 +24,7 @@ export class BusinessEngine {
     const simulationMessages: Message[] = [];
 
     const currentCycle = gameState.currentCycle;
+    const currentOverview = gameState.businessOverview || BUSINESS_OVERVIEW;
 
     // Add simulation group message with cycleNumber
     const simulationGroupMessage: Message = {
@@ -92,6 +96,12 @@ export class BusinessEngine {
 
     console.log('[BusinessEngine] New KPIs:', JSON.stringify(newKPIsWithSharePrice, null, 2));
     yield { type: 'kpis', content: newKPIsWithSharePrice };
+
+    // Update business overview
+    const updatedOverview = await updateOverview(currentOverview, impactAnalysis.content);
+    console.log('[BusinessEngine] Updated overview:', updatedOverview);
+    yield { type: 'business_overview', content: updatedOverview };
+
 
     // Generate summary of simulation
     console.log('[BusinessEngine] Generating summary of simulation');

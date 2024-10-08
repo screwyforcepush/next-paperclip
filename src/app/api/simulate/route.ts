@@ -26,6 +26,10 @@ export async function POST(req: NextRequest) {
             console.log("[simulate] Received KPIs:", JSON.stringify(message.content, null, 2));
             controller.enqueue(JSON.stringify(message) + '\n');
             console.log("[simulate] Enqueued KPI update to stream");
+          } else if ('type' in message && message.type === 'business_overview') {
+            console.log("[simulate] Received overview update:", message.content);
+            controller.enqueue(JSON.stringify(message) + '\n');
+            console.log("[simulate] Enqueued overview update to stream");
           } else {
             messageCount++;
             console.log(`[simulate] Received message ${messageCount} from BusinessEngine:`, JSON.stringify(message, null, 2));

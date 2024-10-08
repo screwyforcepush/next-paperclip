@@ -28,8 +28,12 @@ The outcome of their decision has unfolded.
 The market has reacted.
 
 [TASK]
-  Distill the C-suite's reaction to the Advice, the resulting Outcome, and a Market Reaction highlight, into a maximally compressed summary.
-  Respond with a single paragraph narrative.
+  Distill the C-suite's reaction to the Advice, and the resulting Outcome, into a maximally compressed, single paragraph summary.
+  Add a one line highlight of the Market Reaction, followed by a bar chart representing the Buy/Sell volume.
+  eg. 
+BUY:  [●●●●●●●●  ]
+SELL: [●●●●●●●   ]
+
 [/TASK]
 
 ${BUSINESS_OVERVIEW}
@@ -57,6 +61,67 @@ Market Reaction:
     userInput,
     simulationContent,
     orderSummary,
+  });
+
+  return response.trim();
+}
+
+
+export async function updateOverview(
+  currentOverview: string, 
+  recentEvents: string, 
+): Promise<string> {
+
+  const promptTemplate = PromptTemplate.fromTemplate(`
+  CopyYou are the Business Intelligence Analyst for Universal Paperclips. Your role is to provide a concise, accurate snapshot of the company's current position and resources.
+
+[TASK]
+Given the Recent Events, update the Business Overview for Universal Paperclips. 
+Only modify portions of the Overview when there is clear evidence from Recent Events.
+
+Update Guidelines:
+1. Market position and competition
+2. Product/service offerings
+3. Key resources (human, physical, technological, financial)
+4. Target markets
+5. Strategic partnerships
+6. Major milestones or setbacks
+7. R&D and innovation
+8. Regulatory or legal impacts
+9. Company culture
+
+Produce a maximally compressed overview as 5-7 concise bullet points. Focus on the most significant changes, using factual information without elaboration. Your overview should provide a clear, holistic picture of Universal Paperclips' current state.
+
+Response format:
+The Heading of your overview is "Universal Paperclips Overview".
+short description of the company.
+Current State:
+- bullet point 1
+- bullet point 2
+- bullet point 3
+...
+[/TASK]
+
+
+# Current Business Overview:
+{currentOverview}
+
+
+# Recent Events:
+{recentEvents}
+
+
+  `);
+
+  const chain = RunnableSequence.from([
+    promptTemplate,
+    model,
+    new StringOutputParser(),
+  ]);
+
+  const response = await chain.invoke({
+    currentOverview,
+    recentEvents,
   });
 
   return response.trim();

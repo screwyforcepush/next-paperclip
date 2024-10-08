@@ -1,16 +1,17 @@
 'use client';
 
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import { GameState, Message, KPIState } from '@/types/game';
+import { GameState, Message, KPI } from '@/types/game';
 import { loadGameState, saveGameState } from '@/lib/utils/localStorage';
 import { Logger } from '@/lib/utils/logger';
 import { GameActionType } from './gameActionTypes';
 
 type Action =
-  | { type: GameActionType.UpdateKPI; payload: KPIState }
+  | { type: GameActionType.UpdateKPI; payload: KPI }
   | { type: GameActionType.AddMessage; payload: Message }
   | { type: GameActionType.SetCurrentCycle; payload: number }
   | { type: GameActionType.SetCurrentSituation; payload: string }
+  | { type: GameActionType.SetBusinessOverview; payload: string }
   | { type: GameActionType.ResetGame }
   | { type: GameActionType.SetGameState; payload: GameState }
   | { type: 'SET_GAME_STATE'; payload: GameState };
@@ -18,6 +19,7 @@ type Action =
 const initialState: GameState = {
   currentCycle: 1,
   currentSituation: '',
+  businessOverview: '',
   kpiHistory: [],
   messages: [],
 };
@@ -44,6 +46,11 @@ const gameReducer = (state: GameState, action: Action): GameState => {
       return {
         ...state,
         currentSituation: action.payload,
+      };
+    case GameActionType.SetBusinessOverview:
+      return {
+        ...state,
+        businessOverview: action.payload,
       };
     case GameActionType.ResetGame:
       return initialState;

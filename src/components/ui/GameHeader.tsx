@@ -11,6 +11,7 @@ const GameHeader: React.FC = () => {
   const [isOverviewOpen, setIsOverviewOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { dispatch } = useGameState();
+  const { gameState } = useGameState();
 
   const handleNewGame = async () => {
     setIsLoading(true);
@@ -77,7 +78,7 @@ const GameHeader: React.FC = () => {
               li: ({node, ...props}) => <li className="mb-1" {...props} />,
             }}
           >
-            {BUSINESS_OVERVIEW}
+            {gameState.businessOverview || BUSINESS_OVERVIEW}
           </ReactMarkdown>
         </div>
       )}

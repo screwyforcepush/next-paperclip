@@ -74,6 +74,10 @@ export const useMessageHandler = (input: string, setInput: (input: string) => vo
             if (parsedMessage.type === 'kpis') {
               console.log('[useMessageHandler] Received KPI update:', parsedMessage.content);
               dispatch({ type: GameActionType.UpdateKPI, payload: parsedMessage.content });
+            } else if (parsedMessage.type === 'business_overview') {
+              console.log('[useMessageHandler] Matched business_overview condition');
+              console.log('[useMessageHandler] Received overview update:', parsedMessage.content);
+              dispatch({ type: GameActionType.SetBusinessOverview, payload: parsedMessage.content });
             } else if (parsedMessage.role === 'business_cycle') {
               const newCycle = parseInt(parsedMessage.content, 10);
               if (!isNaN(newCycle)) {
@@ -88,7 +92,8 @@ export const useMessageHandler = (input: string, setInput: (input: string) => vo
               setIsSimulating(false);
               console.log('[useMessageHandler] isSimulating set to false');
             } else {
-              console.log('[useMessageHandler] Received message:', parsedMessage);
+              console.log('[useMessageHandler] Unhandled message type:', parsedMessage.type);
+              console.log('[useMessageHandler] Full unhandled message:', JSON.stringify(parsedMessage));
               dispatch({ type: GameActionType.AddMessage, payload: parsedMessage });
             }
           } catch (error) {
