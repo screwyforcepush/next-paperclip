@@ -1,9 +1,18 @@
 import { ChatOpenAI } from "@langchain/openai";
 
+const DEFAULT_METADATA = {
+  trace_name: "notrace_name",
+  trace_id: "notrace_id",
+  session_id: "nosession_id",
+  trace_user_id: "nouser_id",
+  generation_name: "nogeneration_name",
+  business_objective: "nobusiness_objective"
+};
+
 export const getChatOpenAI = (() => {
   let instance: ChatOpenAI | null = null;
 
-  return () => {
+  return (metadata: typeof DEFAULT_METADATA = DEFAULT_METADATA) => {
     if (!instance) {
       instance = new ChatOpenAI({
         openAIApiKey: "sk-SWEGTVLg6xizYG8vFeIo1w", // This can be any string when using LiteLLM proxy
@@ -24,6 +33,13 @@ export const getChatOpenAI = (() => {
         }
       });
     }
+
+    // Update the modelKwargs directly
+    instance.modelKwargs = {
+      ...instance.modelKwargs,
+      metadata: metadata
+    };
+
     return instance;
   };
 })();
