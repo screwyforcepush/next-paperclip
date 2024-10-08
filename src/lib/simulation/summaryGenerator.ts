@@ -29,10 +29,10 @@ The market has reacted.
 
 [TASK]
   Distill the C-suite's reaction to the Advice, and the resulting Outcome, into a maximally compressed, single paragraph summary.
-  Add a one line highlight of the Market Reaction, followed by a bar chart representing the Buy/Sell volume.
+  Add a one line highlight of the Market Reaction, followed by a directional Buy/Sell volume indicator.
   eg. 
-BUY:  [●●●●●●●●  ]
-SELL: [●●●●●●●   ]
+Buy  : ●●
+Sell : ●●●●●●●●●●
 
 [/TASK]
 

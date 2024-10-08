@@ -29,6 +29,7 @@ const AgentState = Annotation.Root({
     default: () => undefined,
     value: (x, y) => y ?? x,
   }),
+  currentOverview: Annotation<string>(), // Add this line
 });
 
 // Define the type for node names
@@ -63,7 +64,7 @@ const ceoNode = async (state: typeof AgentState.State) => {
       situation: state.situation,
       userAdvice: state.userAdvice,
       messages: state.messages,
-      previousSummary: state.previousSummary,
+      currentOverview: state.currentOverview, // Change this line
     });
     console.log("[ceoNode] CEO response:", ceoResponse);
     const reponse_string = ceoResponse.deliberation + "\n" + ceoResponse.decision;
@@ -83,7 +84,11 @@ const createCSuiteNode = (role: NodeNames, agent: (params: any) => Promise<{ mes
     console.log(`[${role}Node] Starting ${role} node`);
     if (state.ceoDecision && state.ceoDecision.assignments[role]) {
       const assignment = state.ceoDecision.assignments[role];
-      const response = await agent({ situation: assignment, messages: state.messages });
+      const response = await agent({ 
+        situation: assignment, 
+        messages: state.messages,
+        currentOverview: state.currentOverview, // Change this line
+      });
       console.log(`[${role}Node] assignment ${assignment} ${role} response:`, response.messages[0].content);
       return {
         messages: [new AIMessage({ content: response.messages[0].content as string, name: role })],
@@ -96,12 +101,12 @@ const createCSuiteNode = (role: NodeNames, agent: (params: any) => Promise<{ mes
 export async function* runSimulation(
   situation: string, 
   userAdvice: string, 
-  previousSummary?: string
+  currentOverview: string // Change this parameter
 ) {
   console.log("[runSimulation] Starting simulation");
   console.log("[runSimulation] Situation:", situation);
   console.log("[runSimulation] User advice:", userAdvice);
-  console.log("[runSimulation] Previous summary:", previousSummary);
+  console.log("[runSimulation] Current overview:", currentOverview);
 
   const workflow = new StateGraph(AgentState);
 
@@ -152,7 +157,7 @@ export async function* runSimulation(
       messages: [],
       ceoDecision: null,
       completedAgents: [],
-      previousSummary, // Add this line
+      currentOverview, // Change this line
     }, {
       streamMode: "values",
     });

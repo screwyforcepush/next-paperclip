@@ -41,13 +41,13 @@ export class BusinessEngine {
     // Find the most recent summary
     const lastSummary = [...gameState.messages]
       .reverse()
-      .find(msg => msg.name === "Simulation Summary" || msg.name === "Simulation Sumamry");
+      .find(msg => msg.name === "Simulation Summary");
     console.log('[BusinessEngine] Last summary:', lastSummary);
     console.log('[BusinessEngine] Starting simulation');
     const simulationGenerator = runSimulation(
       gameState.currentSituation, 
       userInput,
-      lastSummary ? lastSummary.content : undefined
+      currentOverview // Pass currentOverview instead of lastSummary
     );
 
     console.log('[BusinessEngine] Entering simulation loop');
