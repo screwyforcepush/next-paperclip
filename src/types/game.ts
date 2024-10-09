@@ -14,6 +14,9 @@ export interface Decision {
 }
 
 export interface GameState {
+  userId: string;
+  gameId: string; // Add this new field
+  sessionId: string; // Add this new field
   currentCycle: number;
   currentSituation: string;
   businessOverview: string;

@@ -29,7 +29,7 @@ export const useGameStateLoader = () => {
     setError(null);
     try {
       console.log('[useGameStateLoader] Starting new game');
-      const newGameState = await startNewGame();
+      const newGameState = await startNewGame(gameState);
       console.log('[useGameStateLoader] New game state received:', newGameState);
       dispatch({ type: GameActionType.SetGameState, payload: newGameState });
     } catch (error) {

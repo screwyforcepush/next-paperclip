@@ -17,7 +17,7 @@ const GameHeader: React.FC = () => {
     setIsLoading(true);
     try {
       console.log('[GameHeader] Starting new game');
-      const newGameState = await startNewGame();
+      const newGameState = await startNewGame(gameState);
       console.log('[GameHeader] New game state received:', newGameState);
       dispatch({ type: 'SET_GAME_STATE', payload: newGameState });
     } catch (error) {

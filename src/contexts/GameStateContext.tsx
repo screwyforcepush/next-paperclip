@@ -5,6 +5,7 @@ import { GameState, Message, KPI } from '@/types/game';
 import { loadGameState, saveGameState } from '@/lib/utils/localStorage';
 import { Logger } from '@/lib/utils/logger';
 import { GameActionType } from './gameActionTypes';
+import { v4 as uuidv4 } from 'uuid';
 
 type Action =
   | { type: GameActionType.UpdateKPI; payload: KPI }
@@ -17,6 +18,9 @@ type Action =
   | { type: 'SET_GAME_STATE'; payload: GameState };
 
 const initialState: GameState = {
+  userId: '',
+  gameId: '',
+  sessionId: '', // Add this line
   currentCycle: 1,
   currentSituation: '',
   businessOverview: '',
@@ -75,14 +79,24 @@ const initializer = (): GameState => {
     const savedState = loadGameState();
     if (savedState) {
       console.log('[GameStateContext] Initializing with saved state:', savedState);
-      return savedState;
+      return savedState; // This will already have a new sessionId from loadGameState
     } else {
-      console.log('[GameStateContext] No saved state found, using initial state');
-      return initialState;
+      console.log('[GameStateContext] No saved state found, creating new state with UUIDs');
+      return {
+        ...initialState,
+        userId: uuidv4(),
+        gameId: uuidv4(),
+        sessionId: uuidv4(), // Generate a new sessionId only for the very first time
+      };
     }
   } catch (error) {
     console.error('Error during state initialization:', error);
-    return initialState;
+    return {
+      ...initialState,
+      userId: uuidv4(),
+      gameId: uuidv4(),
+      sessionId: uuidv4(), // Generate a new sessionId only in case of an error
+    };
   }
 };
 

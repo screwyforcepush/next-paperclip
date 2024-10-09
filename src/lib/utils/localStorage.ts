@@ -1,4 +1,5 @@
 import { GameState } from '@/types/game';
+import { v4 as uuidv4 } from 'uuid';
 
 const GAME_STATE_KEY = 'universalPaperclips_gameState';
 
@@ -9,8 +10,15 @@ export function loadGameState(): GameState | null {
     if (savedState) {
       const parsedState = JSON.parse(savedState);
       if (isValidGameState(parsedState)) {
-        console.log('[localStorage] Loaded game state from local storage:', parsedState);
-        return parsedState;
+        // Generate a new sessionId when loading a saved state
+        const refreshedState = {
+          ...parsedState,
+          sessionId: uuidv4()
+        };
+        console.log('[localStorage] Loaded game state from local storage:', refreshedState);
+        // Save the refreshed state back to localStorage
+        saveGameState(refreshedState);
+        return refreshedState;
       } else {
         console.error('[localStorage] Invalid game state found in local storage');
         return null;
@@ -29,6 +37,8 @@ function isValidGameState(state: any): state is GameState {
   return (
     typeof state === 'object' &&
     state !== null &&
+    typeof state.userId === 'string' &&
+    typeof state.gameId === 'string' &&
     typeof state.currentCycle === 'number' &&
     typeof state.currentSituation === 'string' &&
     Array.isArray(state.kpiHistory) &&

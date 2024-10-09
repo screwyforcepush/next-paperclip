@@ -1,9 +1,10 @@
 import { saveGameState, clearGameState } from './localStorage';
 import { GameState } from '@/types/game';
+import { v4 as uuidv4 } from 'uuid';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 
-export async function startNewGame(): Promise<GameState> {
+export async function startNewGame(currentState: GameState | null): Promise<GameState> {
   console.log('[api] Starting new game');
   try {
     clearGameState();
@@ -24,8 +25,12 @@ export async function startNewGame(): Promise<GameState> {
     const adviceRequestContent = typeof advice_request === 'string' ? advice_request : JSON.stringify(advice_request);
 
     const newGameState: GameState = {
+      userId: currentState?.userId || uuidv4(), // Keep existing userId or generate new
+      gameId: uuidv4(), // Always generate a new gameId for a new game
+      sessionId: currentState?.sessionId || uuidv4(), // Keep existing sessionId or generate new
       currentCycle: 1,
       currentSituation: scenarioContent,
+      businessOverview: '',
       kpiHistory: [{
         revenue: 1000000,
         profitMargin: 0.1,
