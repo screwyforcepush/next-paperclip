@@ -1,15 +1,15 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { getChatOpenAI } from '@/lib/utils/openaiConfig';
-import { BUSINESS_OVERVIEW } from '@lib/constants/business'; 
 import { StructuredOutputParser } from "@langchain/core/output_parsers"; 
 import { z } from "zod"; 
 
-export async function generateScenario(impactAnalysis?: string): Promise<{ scenario: string; advice_request: string }> {
+export async function generateScenario(updatedOverview: string, llmMetadata: any): Promise<{ scenario: string; advice_request: string }> {
   console.log("[generateScenario] Starting scenario generation");
 
   try {
+
     console.log("[generateScenario] Initializing ChatOpenAI model");
-    const model = getChatOpenAI();
+    const model = getChatOpenAI({...llmMetadata, inferenceObjective: "New Scenario"});
 
     const template = `
     You are Storm Generator
@@ -19,7 +19,7 @@ export async function generateScenario(impactAnalysis?: string): Promise<{ scena
     As the generator of Storms, your scenario should present both opportunity and great risk if fumbled.
     The scenerio is an inflection point that will be faced by Universal Paperclips.
     The scenerio should be  2-3 sentences, focusing on the most critical aspect of the scenario.
-    Include in your reponse a request from Universal Paperclips for specific advice in regard to the scenario.
+    Include in your reponse a request from Universal Paperclips for specific advice on how to navigate the scenario.
 
     **Provide your response in the following JSON format:**
     {{
@@ -28,12 +28,10 @@ export async function generateScenario(impactAnalysis?: string): Promise<{ scena
     }}
     [/TASK]
 
-    ${BUSINESS_OVERVIEW}
+    ${updatedOverview}
 
-    ${impactAnalysis ? `
-    Recent Activity:
-    ${impactAnalysis}
-    ` : ''}
+
+    
     `;
 
     console.log("[generateScenario] Creating prompt template");

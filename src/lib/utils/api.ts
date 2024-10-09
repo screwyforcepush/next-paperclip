@@ -1,6 +1,8 @@
 import { saveGameState, clearGameState } from './localStorage';
 import { GameState } from '@/types/game';
 import { v4 as uuidv4 } from 'uuid';
+import { BUSINESS_OVERVIEW } from '../constants/business';
+import { llmMetadataFromState } from './metadataUtils';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 
@@ -9,28 +11,12 @@ export async function startNewGame(currentState: GameState | null): Promise<Game
   try {
     clearGameState();
 
-    // Use NEXT_PUBLIC_API_BASE_URL for client-side code
-    const response = await fetch(`${API_BASE_URL}/api/generateScenario`, {
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({}),
-    });
-
-    const { scenario, advice_request } = await response.json();
-    
-    // Ensure scenario and advice_request are strings
-    const scenarioContent = typeof scenario === 'string' ? scenario : JSON.stringify(scenario);
-    const adviceRequestContent = typeof advice_request === 'string' ? advice_request : JSON.stringify(advice_request);
-
     const newGameState: GameState = {
       userId: currentState?.userId || uuidv4(), // Keep existing userId or generate new
       gameId: uuidv4(), // Always generate a new gameId for a new game
       sessionId: currentState?.sessionId || uuidv4(), // Keep existing sessionId or generate new
       currentCycle: 1,
-      currentSituation: scenarioContent,
-      businessOverview: '',
+      businessOverview: BUSINESS_OVERVIEW,
       kpiHistory: [{
         revenue: 1000000,
         profitMargin: 0.1,
@@ -40,13 +26,34 @@ export async function startNewGame(currentState: GameState | null): Promise<Game
         innovationIndex: 0.6,
         sharePrice: 20
       }],
-      messages: [
-        { role: 'system', content: "catface Welcome to Universal Paperclips! Let's start your journey as a business consultant." },
-        { role: 'business_cycle', content: '1', cycleNumber: 1 },
-        { role: 'system', content: scenarioContent, cycleNumber: 1 },
-        { role: 'system', name: 'CEO', content: adviceRequestContent, cycleNumber: 1 },
-      ],
+      messages: [],
+      currentSituation: "",
     };
+
+    const llmMetadata = llmMetadataFromState(newGameState);
+
+    const response = await fetch(`${API_BASE_URL}/api/generateScenario`, {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ updatedOverview: BUSINESS_OVERVIEW, llmMetadata }),
+    });
+
+
+    const { scenario, advice_request } = await response.json();
+    
+    // Ensure scenario and advice_request are strings
+    const scenarioContent = typeof scenario === 'string' ? scenario : JSON.stringify(scenario);
+    const adviceRequestContent = typeof advice_request === 'string' ? advice_request : JSON.stringify(advice_request);
+
+    newGameState.currentSituation = scenarioContent;
+    newGameState.messages = [
+      { role: 'system', content: "Welcome strategic Advisor! The CEO of Universal Paperclips seeks your council..." },
+      { role: 'business_cycle', content: '1', cycleNumber: 1 },
+      { role: 'system', content: scenarioContent, cycleNumber: 1 },
+      { role: 'system', name: 'CEO', content: adviceRequestContent, cycleNumber: 1 },
+    ]
 
     console.log('[api] New game state:', JSON.stringify(newGameState, null, 2));
     saveGameState(newGameState);

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, Flex, Text, AreaChart } from '@tremor/react';
 import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/solid';
+import { CustomTooltipProps } from '@tremor/react'; // Add this import
 
 interface KPIChartProps {
   title: string;
@@ -75,12 +76,6 @@ const KPIChart: React.FC<KPIChartProps> = ({ title, data, category, color, value
         showGridLines={false}
         showAnimation={true}
         curveType="monotone"
-        theme={{
-          tooltip: {
-            backgroundColor: '#1F2937',
-            color: '#F3F4F6',
-          },
-        }}
       />
     </Card>
   );

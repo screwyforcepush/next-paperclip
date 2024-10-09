@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import { GameState, Message, KPI } from '@/types/game';
 import { generateScenario } from './scenarioGenerator';
 import { calculateNewKPIs } from './kpiCalculator';
@@ -6,7 +7,7 @@ import { analyzeImpact } from './impactAnalysis';
 import { generateSummary, updateOverview } from './summaryGenerator';
 import { calculateSharePrice } from './sharePriceCalculator';
 import { BUSINESS_OVERVIEW } from '@lib/constants/business'; // Add this import
-
+import { llmMetadataFromState } from '@/lib/utils/metadataUtils';
 
 // Define a type for generator messages
 type GeneratorMessage =
@@ -25,6 +26,7 @@ export class BusinessEngine {
 
     const currentCycle = gameState.currentCycle;
     const currentOverview = gameState.businessOverview || BUSINESS_OVERVIEW;
+    const llmMetadata = llmMetadataFromState(gameState);
 
     // Add simulation group message with cycleNumber
     const simulationGroupMessage: Message = {
@@ -97,6 +99,7 @@ export class BusinessEngine {
     console.log('[BusinessEngine] New KPIs:', JSON.stringify(newKPIsWithSharePrice, null, 2));
     yield { type: 'kpis', content: newKPIsWithSharePrice };
 
+    llmMetadata.kpis = newKPIsWithSharePrice;
     // Update business overview
     const updatedOverview = await updateOverview(currentOverview, impactAnalysis.content);
     console.log('[BusinessEngine] Updated overview:', updatedOverview);
@@ -131,12 +134,12 @@ export class BusinessEngine {
     simulationMessages.push(businessCycleMessage);
     yield businessCycleMessage;
 
-
+    llmMetadata.cycle = newCycle;
     console.log('[BusinessEngine] Generating new scenario and advice request');
     let newScenario: string;
     let adviceRequest: string;
     try {
-      const { scenario, advice_request } = await generateScenario(impactAnalysis.content);
+      const { scenario, advice_request } = await generateScenario(updatedOverview, llmMetadata);
       newScenario = scenario;
       adviceRequest = advice_request;
       console.log('[BusinessEngine] New scenario:', newScenario);

@@ -4,10 +4,10 @@ import { generateScenario } from '@/lib/simulation/scenarioGenerator';
 export const runtime = 'edge';
 
 export async function POST(req: Request) {
-  const { gameState } = await req.json();
+  const { updatedOverview, llmMetadata } = await req.json();
 
 
-  const response = await generateScenario(gameState);
+  const response = await generateScenario(updatedOverview, llmMetadata);
 
   return NextResponse.json(response);
 }
