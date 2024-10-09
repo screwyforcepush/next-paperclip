@@ -6,13 +6,12 @@ import { getChatOpenAI } from '@/lib/utils/openaiConfig';
 import { BUSINESS_OVERVIEW } from '@lib/constants/business';
 import { Order } from '@/types/game';
 
-const model = getChatOpenAI();
-
 export async function generateSummary(
   currentScenario: string, 
   userInput: string, 
   simplifiedMessages: string[],
-  orders: Order[]
+  orders: Order[],
+  llmMetadata: any // Accept llmMetadata
 ): Promise<string> {
   // Combine all simulation messages into a single string
   const simulationContent = simplifiedMessages.join('\n');
@@ -50,6 +49,12 @@ Market Reaction:
 {orderSummary}
   `);
 
+  // Initialize model with llmMetadata and inferenceObjective
+  const model = getChatOpenAI({
+    ...llmMetadata,
+    inferenceObjective: "Summarise Simulation",
+  });
+
   const chain = RunnableSequence.from([
     promptTemplate,
     model,
@@ -70,6 +75,7 @@ Market Reaction:
 export async function updateOverview(
   currentOverview: string, 
   recentEvents: string, 
+  llmMetadata: any // Accept llmMetadata
 ): Promise<string> {
 
   const promptTemplate = PromptTemplate.fromTemplate(`
@@ -112,6 +118,12 @@ Current State:
 
 
   `);
+
+  // Initialize model with llmMetadata and inferenceObjective
+  const model = getChatOpenAI({
+    ...llmMetadata,
+    inferenceObjective: "Update Business Overview",
+  });
 
   const chain = RunnableSequence.from([
     promptTemplate,

@@ -49,7 +49,8 @@ export class BusinessEngine {
     const simulationGenerator = runSimulation(
       gameState.currentSituation, 
       userInput,
-      currentOverview // Pass currentOverview instead of lastSummary
+      currentOverview,
+      llmMetadata
     );
 
     console.log('[BusinessEngine] Entering simulation loop');
@@ -71,7 +72,12 @@ export class BusinessEngine {
       .map(msg => msg.content);
 
     console.log('[BusinessEngine] Analyzing impact');
-    const impactAnalysis = await analyzeImpact(gameState.currentSituation, cSuiteActions);
+    const impactAnalysis = await analyzeImpact(
+      gameState.currentSituation, 
+      cSuiteActions, 
+      llmMetadata,
+      currentOverview // Add this line
+    );
     console.log('[BusinessEngine] Impact analysis:', impactAnalysis);
     impactAnalysis.role = 'simulation';
     impactAnalysis.cycleNumber = currentCycle
@@ -80,7 +86,7 @@ export class BusinessEngine {
   
 
     console.log('[BusinessEngine] Calculating new KPIs');
-    const newKPIs = await calculateNewKPIs(gameState, simulationMessages, impactAnalysis.content);
+    const newKPIs = await calculateNewKPIs(gameState, simulationMessages, impactAnalysis.content, llmMetadata);
 
     // Calculate share price
     console.log('[BusinessEngine] Calculating share price');
@@ -101,7 +107,7 @@ export class BusinessEngine {
 
     llmMetadata.kpis = newKPIsWithSharePrice;
     // Update business overview
-    const updatedOverview = await updateOverview(currentOverview, impactAnalysis.content);
+    const updatedOverview = await updateOverview(currentOverview, impactAnalysis.content, llmMetadata);
     console.log('[BusinessEngine] Updated overview:', updatedOverview);
     yield { type: 'business_overview', content: updatedOverview };
 
@@ -109,7 +115,7 @@ export class BusinessEngine {
     // Generate summary of simulation
     console.log('[BusinessEngine] Generating summary of simulation');
     const simplifiedMessages = simulationMessages.map(msg => `${msg.name || msg.role}: ${msg.content}`);
-    const summary = await generateSummary(gameState.currentSituation, userInput, simplifiedMessages, orders);
+    const summary = await generateSummary(gameState.currentSituation, userInput, simplifiedMessages, orders, llmMetadata);
     console.log('[BusinessEngine] Simulation summary:', summary);
 
     // Add system message with summary

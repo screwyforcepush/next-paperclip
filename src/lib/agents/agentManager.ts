@@ -28,7 +28,9 @@ const AgentState = Annotation.Root({
     default: () => undefined,
     value: (x, y) => y ?? x,
   }),
-  currentOverview: Annotation<string>(), // Add this line
+  currentOverview: Annotation<string>(),
+  // Add llmMetadata to AgentState
+  llmMetadata: Annotation<any>(),
 });
 
 // Define the type for node names
@@ -59,11 +61,13 @@ function routeAgent(state: typeof AgentState.State): NodeNames | typeof END {
 const ceoNode = async (state: typeof AgentState.State) => {
   console.log("[ceoNode] Starting CEO node");
   try {
+    // Pass llmMetadata to ceoAgent
     const ceoResponse: CEODecision = await ceoAgent({
       situation: state.situation,
       userAdvice: state.userAdvice,
       messages: state.messages,
-      currentOverview: state.currentOverview, // Change this line
+      currentOverview: state.currentOverview,
+      llmMetadata: state.llmMetadata,
     });
     console.log("[ceoNode] CEO response:", ceoResponse);
     const reponse_string = ceoResponse.deliberation + "\n" + ceoResponse.decision;
@@ -78,15 +82,19 @@ const ceoNode = async (state: typeof AgentState.State) => {
   }
 };
 
-const createCSuiteNode = (role: NodeNames, agent: (params: any) => Promise<{ messages: AIMessage[] }>) => 
+const createCSuiteNode = (
+  role: NodeNames,
+  agent: (params: any) => Promise<{ messages: AIMessage[] }>
+) =>
   async (state: typeof AgentState.State) => {
     console.log(`[${role}Node] Starting ${role} node`);
     if (state.ceoDecision && state.ceoDecision.assignments[role]) {
       const assignment = state.ceoDecision.assignments[role];
-      const response = await agent({ 
-        situation: assignment, 
+      const response = await agent({
+        situation: assignment,
         messages: state.messages,
-        currentOverview: state.currentOverview, // Change this line
+        currentOverview: state.currentOverview,
+        llmMetadata: state.llmMetadata, // Pass llmMetadata to agent
       });
       console.log(`[${role}Node] assignment ${assignment} ${role} response:`, response.messages[0].content);
       return {
@@ -100,7 +108,8 @@ const createCSuiteNode = (role: NodeNames, agent: (params: any) => Promise<{ mes
 export async function* runSimulation(
   situation: string, 
   userAdvice: string, 
-  currentOverview: string // Change this parameter
+  currentOverview: string,
+  llmMetadata: any
 ) {
   console.log("[runSimulation] Starting simulation");
   console.log("[runSimulation] Situation:", situation);
@@ -150,16 +159,20 @@ export async function* runSimulation(
 
   console.log("[runSimulation] Invoking graph");
   try {
-    const stream = await graph.stream({
-      situation,
-      userAdvice,
-      messages: [],
-      ceoDecision: null,
-      completedAgents: [],
-      currentOverview, // Change this line
-    }, {
-      streamMode: "values",
-    });
+    const stream = await graph.stream(
+      {
+        situation,
+        userAdvice,
+        messages: [],
+        ceoDecision: null,
+        completedAgents: [],
+        currentOverview,
+        llmMetadata, // Pass llmMetadata to the graph
+      },
+      {
+        streamMode: "values",
+      }
+    );
 
     const yieldedMessages = new Set();
 
@@ -191,4 +204,3 @@ export async function* runSimulation(
     throw error;
   }
 }
-

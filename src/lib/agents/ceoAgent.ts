@@ -5,8 +5,6 @@ import { BaseMessage } from "@langchain/core/messages";
 import { z } from "zod";
 import { getChatOpenAI } from '@/lib/utils/openaiConfig';
 
-const model = getChatOpenAI();
-
 const ceoPrompt = PromptTemplate.fromTemplate(`
 You are Alex Turing, the CEO of Universal Paperclips. Your role is to make high-level decisions and delegate your expected outcomes to your C-suite team. 
 There is an Inflection Point that the company is facing. You have consulted with an external Advisor.
@@ -52,17 +50,12 @@ const outputParser = StructuredOutputParser.fromZodSchema(
   })
 );
 
-const ceoChain = RunnableSequence.from([
-  ceoPrompt,
-  model,
-  outputParser
-]);
-
 export async function ceoAgent(state: {
   situation: string;
   userAdvice: string;
   messages: BaseMessage[];
-  currentOverview: string; // Change this line
+  currentOverview: string;
+  llmMetadata: any; // Accept llmMetadata
 }) {
   // Log the resolved prompt
   const resolvedPrompt = await ceoPrompt.format({
@@ -72,6 +65,15 @@ export async function ceoAgent(state: {
   });
   console.log("[ceoAgent] Resolved prompt:", resolvedPrompt);
   
+  // Initialize model with llmMetadata and inferenceObjective
+  const model = getChatOpenAI({
+    ...state.llmMetadata,
+    inferenceObjective: "CEO Decision",
+  });
+
+  // Create chain inside the function to use the dynamic model
+  const ceoChain = RunnableSequence.from([ceoPrompt, model, outputParser]);
+
   const response = await ceoChain.invoke({
     situation: state.situation,
     userAdvice: state.userAdvice,

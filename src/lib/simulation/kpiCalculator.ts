@@ -5,14 +5,13 @@ import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { z } from "zod";
 
-const model = getChatOpenAI();
-
 async function calculateKPIImpact(
   kpiName: string,
   currentSituation: string,
   currentValue: number,
   simplifiedMessages: string,
-  simulation: string
+  simulation: string,
+  llmMetadata: any // Accept llmMetadata
 ): Promise<number> {
   const kpiImpactSchema = z.object({
     impactAnalysis: z.string(),
@@ -20,6 +19,12 @@ async function calculateKPIImpact(
   });
 
   const outputParser = StructuredOutputParser.fromZodSchema(kpiImpactSchema);
+
+  // Initialize model with llmMetadata and inferenceObjective
+  const model = getChatOpenAI({
+    ...llmMetadata,
+    inferenceObjective: `Calculate ${kpiName} Impact`,
+  });
 
   const kpiCalculatorPrompt = PromptTemplate.fromTemplate(`
 You are a Business Analyst specializing in {kpiName} impact analysis. 
@@ -98,7 +103,8 @@ Where:
 export async function calculateNewKPIs(
   gameState: GameState,
   simulationMessages: Message[],
-  simulation: string
+  simulation: string,
+  llmMetadata: any // Accept llmMetadata
 ): Promise<KPI> {
   try {
     console.log("[calculateNewKPIs] Starting KPI calculation");
@@ -122,7 +128,8 @@ export async function calculateNewKPIs(
           gameState.currentSituation,
           currentValue,
           simplifiedMessages,
-          simulation
+          simulation,
+          llmMetadata // Pass llmMetadata to calculateKPIImpact
         );
         newKPIs[kpiName as keyof KPI] = newValue;
         console.log(`[calculateNewKPIs] New value for ${kpiName}: ${newValue}`);

@@ -13,9 +13,7 @@ const cSuiteSystemPrompts: Record<CSuiteRole, string> = {
   COO: "As the Chief Operating Officer of Universal Paperclips, you are responsible for overseeing and optimizing the company's day-to-day operations. Your focus is on improving operational efficiency, quality control, and supply chain management. You work closely with all departments to implement strategic initiatives, drive continuous improvement, and ensure operational excellence across the organization."
 };
 
-const model = getChatOpenAI();
-
-function createAgentChain(role: CSuiteRole) {
+function createAgentChain(role: CSuiteRole, llmMetadata: any) {
   const promptTemplate = PromptTemplate.fromTemplate(`
     System: ${cSuiteSystemPrompts[role]}
     Current business situation: {situation}
@@ -30,6 +28,12 @@ function createAgentChain(role: CSuiteRole) {
     [/TASK]
   `);
 
+  // Initialize model with llmMetadata and inferenceObjective
+  const model = getChatOpenAI({
+    ...llmMetadata,
+    inferenceObjective: `${role} Action`,
+  });
+
   return RunnableSequence.from([
     promptTemplate,
     model,
@@ -39,9 +43,14 @@ function createAgentChain(role: CSuiteRole) {
 
 async function makeDecision(
   role: CSuiteRole,
-  state: { situation: string; messages: BaseMessage[]; currentOverview: string }
+  state: {
+    situation: string;
+    messages: BaseMessage[];
+    currentOverview: string;
+    llmMetadata: any; // Accept llmMetadata
+  }
 ): Promise<{ messages: AIMessage[] }> {
-  const chain = createAgentChain(role);
+  const chain = createAgentChain(role, state.llmMetadata);
   const ceoMessage = state.messages.find(m => m.name === "CEO");
   const ceoDecision = ceoMessage ? ceoMessage.content : "";
   
@@ -57,10 +66,11 @@ async function makeDecision(
 }
 
 export function createCSuiteAgent(role: CSuiteRole) {
-  return async function(state: {
+  return async function (state: {
     situation: string;
     messages: BaseMessage[];
-    currentOverview: string; // Change this line
+    currentOverview: string;
+    llmMetadata: any; // Accept llmMetadata
   }) {
     return makeDecision(role, state);
   };

@@ -5,19 +5,10 @@ import { getChatOpenAI } from '@/lib/utils/openaiConfig';
 import { Message } from '@/types/game';
 import { BUSINESS_OVERVIEW } from '@lib/constants/business'; // Add this import
 
-const model = getChatOpenAI();
-
-const GraphState = Annotation.Root({
-  situation: Annotation<string>(),
-  actions: Annotation<string[]>(),
-  critique: Annotation<string>(),
-  simulationMessage: Annotation<Message>(),
-});
-
 const critiqueTemplate = `
 You are a tenacious business analyst renowned for your ability to uncover hidden flaws and potential pitfalls in business strategies. Given the upcoming Inflection Point and the C-suite's proposed actions, provide a candid and critical assessment:
 
-${BUSINESS_OVERVIEW}
+{currentOverview}
 
 Inflection Point:
 {situation}
@@ -67,7 +58,7 @@ Craft your narrative in a concise, no-nonsense manner, bringing the simulated bu
 [/TASK]
 
 
-${BUSINESS_OVERVIEW}
+{currentOverview}
 
 Inflection Point:
 {situation}
@@ -79,46 +70,77 @@ Risk Analysis:
 {critique}
 `;
 
-const critiquePrompt = PromptTemplate.fromTemplate(critiqueTemplate);
-const simulatePrompt = PromptTemplate.fromTemplate(simulateTemplate);
-
-const critiqueChain = critiquePrompt.pipe(model).pipe(new StringOutputParser());
-const simulateChain = simulatePrompt.pipe(model).pipe(new StringOutputParser());
-
-async function performCritiqueNode(state: typeof GraphState.State) {
-  const critique = await critiqueChain.invoke({
-    situation: state.situation,
-    actions: state.actions.join("\n"),
+export async function analyzeImpact(
+  situation: string,
+  cSuiteActions: string[],
+  llmMetadata: any,
+  currentOverview: string // Add this parameter
+): Promise<Message> {
+  const GraphState = Annotation.Root({
+    situation: Annotation<string>(),
+    actions: Annotation<string[]>(),
+    critique: Annotation<string>(),
+    simulationMessage: Annotation<Message>(),
+    llmMetadata: Annotation<any>(),
+    currentOverview: Annotation<string>()
   });
-  return { critique };
-}
 
-async function simulateNode(state: typeof GraphState.State) {
-  const simulationContent = await simulateChain.invoke({
-    situation: state.situation,
-    actions: state.actions.join("\n"),
-    critique: state.critique,
-  });
-  const simulationMessage: Message = {
-    role: 'simulation',
-    content: simulationContent,
-  };
-  return { simulationMessage };
-}
+  const critiquePrompt = PromptTemplate.fromTemplate(critiqueTemplate);
+  const simulatePrompt = PromptTemplate.fromTemplate(simulateTemplate);
 
-const workflow = new StateGraph(GraphState)
-  .addNode("performCritique", performCritiqueNode)
-  .addNode("simulate", simulateNode)
-  .addEdge(START, "performCritique")  // Add this line
-  .addEdge("performCritique", "simulate")
-  .addEdge("simulate", END);
+  async function performCritiqueNode(state: typeof GraphState.State) {
+    // Initialize model with llmMetadata and inferenceObjective
+    const model = getChatOpenAI({
+      ...state.llmMetadata,
+      inferenceObjective: "Critique User Advice",
+    });
 
-const graph = workflow.compile();
+    const critiqueChain = critiquePrompt.pipe(model).pipe(new StringOutputParser());
 
-export async function analyzeImpact(situation: string, cSuiteActions: string[]): Promise<Message> {
+    const critique = await critiqueChain.invoke({
+      situation: state.situation,
+      actions: state.actions.join("\n"),
+      currentOverview: state.currentOverview
+    });
+    return { critique };
+  }
+
+  async function simulateNode(state: typeof GraphState.State) {
+    // Initialize model with llmMetadata and inferenceObjective
+    const model = getChatOpenAI({
+      ...state.llmMetadata,
+      inferenceObjective: "Simulate Impact",
+    });
+
+    const simulateChain = simulatePrompt.pipe(model).pipe(new StringOutputParser());
+
+    const simulationContent = await simulateChain.invoke({
+      situation: state.situation,
+      actions: state.actions.join("\n"),
+      critique: state.critique,
+      currentOverview: state.currentOverview // Add this line
+    });
+    const simulationMessage: Message = {
+      role: 'simulation',
+      content: simulationContent,
+    };
+    return { simulationMessage };
+  }
+
+  const workflow = new StateGraph(GraphState)
+    .addNode("performCritique", performCritiqueNode)
+    .addNode("simulate", simulateNode)
+    .addEdge(START, "performCritique")  // Add this line
+    .addEdge("performCritique", "simulate")
+    .addEdge("simulate", END);
+
+  const graph = workflow.compile();
+
   const result = await graph.invoke({
     situation,
     actions: cSuiteActions,
+    llmMetadata,
+    currentOverview // Add this line
   });
   return result.simulationMessage;
 }
