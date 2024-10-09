@@ -37,7 +37,7 @@ export async function startNewGame(currentState: GameState | null): Promise<Game
       headers: {
           'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ updatedOverview: BUSINESS_OVERVIEW, llmMetadata }),
+      body: JSON.stringify({ updatedOverview: BUSINESS_OVERVIEW, llmMetadata, cycle:"1" }),
     });
 
 
@@ -51,7 +51,7 @@ export async function startNewGame(currentState: GameState | null): Promise<Game
     newGameState.messages = [
       { role: 'system', content: "Welcome strategic Advisor! The CEO of Universal Paperclips seeks your council..." },
       { role: 'business_cycle', content: '1', cycleNumber: 1 },
-      { role: 'system', content: scenarioContent, cycleNumber: 1 },
+      { role: 'scenario', content: scenarioContent, cycleNumber: 1 },
       { role: 'system', name: 'CEO', content: adviceRequestContent, cycleNumber: 1 },
     ]
 

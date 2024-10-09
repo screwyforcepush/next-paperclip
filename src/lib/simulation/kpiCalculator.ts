@@ -23,7 +23,7 @@ async function calculateKPIImpact(
   // Initialize model with llmMetadata and inferenceObjective
   const model = getChatOpenAI({
     ...llmMetadata,
-    inferenceObjective: `Calculate ${kpiName} Impact`,
+    inferenceObjective: `Calculate KPI ${kpiName} Impact`,
   });
 
   const kpiCalculatorPrompt = PromptTemplate.fromTemplate(`

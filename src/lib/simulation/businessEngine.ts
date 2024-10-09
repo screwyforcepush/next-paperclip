@@ -15,7 +15,8 @@ type GeneratorMessage =
   | { type: 'kpis'; content: KPI }
   | { role: 'business_cycle'; content: string }
   | { role: 'system'; content: string }
-  | { type: 'business_overview'; content: string };
+  | { type: 'business_overview'; content: string }
+  | { role: 'scenario'; content: string };
 
 export class BusinessEngine {
   static async *runBusinessCycle(
@@ -145,7 +146,7 @@ export class BusinessEngine {
     let newScenario: string;
     let adviceRequest: string;
     try {
-      const { scenario, advice_request } = await generateScenario(updatedOverview, llmMetadata);
+      const { scenario, advice_request } = await generateScenario(updatedOverview, llmMetadata, newCycle.toString(), gameState.currentSituation);
       newScenario = scenario;
       adviceRequest = advice_request;
       console.log('[BusinessEngine] New scenario:', newScenario);
@@ -158,7 +159,7 @@ export class BusinessEngine {
 
     // Add system message with new scenario
     const systemMessage: Message = {
-      role: 'system',
+      role: 'scenario',
       content: newScenario,
       cycleNumber: newCycle, // Assign cycleNumber
     };

@@ -92,7 +92,9 @@ export const useMessageHandler = (input: string, setInput: (input: string) => vo
               setIsSimulating(false);
               console.log('[useMessageHandler] isSimulating set to false');
             } else {
-              console.log('[useMessageHandler] Unhandled message type:', parsedMessage.type);
+              if (parsedMessage.role === 'scenario') {
+                dispatch({ type: GameActionType.SetCurrentSituation, payload: parsedMessage.content });
+              }
               console.log('[useMessageHandler] Full unhandled message:', JSON.stringify(parsedMessage));
               dispatch({ type: GameActionType.AddMessage, payload: parsedMessage });
             }

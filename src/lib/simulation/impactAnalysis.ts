@@ -3,10 +3,9 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { getChatOpenAI } from '@/lib/utils/openaiConfig';
 import { Message } from '@/types/game';
-import { BUSINESS_OVERVIEW } from '@lib/constants/business'; // Add this import
 
 const critiqueTemplate = `
-You are a tenacious business analyst renowned for your ability to uncover hidden flaws and potential pitfalls in business strategies. Given the upcoming Inflection Point and the C-suite's proposed actions, provide a candid and critical assessment:
+You are a perceptive business analyst known for your ability to identify both opportunities and potential pitfalls in business strategies. Given the upcoming Inflection Point and the C-suite's proposed actions, provide a balanced yet incisive assessment:
 
 {currentOverview}
 
@@ -16,17 +15,17 @@ Inflection Point:
 C-Suite Actions:
 {actions}
 
-Critique Guidelines:
-1. Strategic Vulnerabilities: Identify weak points in the strategy that could be exploited by competitors or market shifts.
-2. Risk Amplification: Highlight how proposed actions might exacerbate existing risks or create new ones.
-3. Execution Hurdles: Pinpoint potential obstacles in implementing these actions, both internal and external.
-4. Market Misalignment: Challenge any assumptions about market conditions or customer behavior that seem overly optimistic.
-5. Resource Strain: Evaluate whether the proposed actions might overextend the company's capabilities or resources.
-6. Competitive Backlash: Anticipate possible aggressive responses from competitors that could undermine the strategy.
-7. Overlooked Threats: Identify emerging market trends or disruptive forces that the C-suite may have underestimated.
-8. Unintended Consequences: Explore potential negative outcomes that might arise from otherwise sound decisions.
+Assessment Guidelines:
+1. Strategic Analysis: Evaluate the strategy's strengths and potential vulnerabilities, particularly in relation to market dynamics.
+2. Risk Assessment: Identify key risks associated with the proposed actions and their potential impact on the company.
+3. Execution Challenges: Highlight possible obstacles in implementing these actions, both internal and external.
+4. Market Alignment: Assess how well the strategy aligns with current market conditions and anticipated shifts.
+5. Resource Implications: Evaluate whether the proposed actions effectively leverage the company's capabilities or might strain its resources.
+6. Competitive Considerations: Anticipate potential responses from competitors and how they might affect the strategy's success.
+7. Trend Analysis: Identify any emerging market trends or disruptive forces that could significantly impact the strategy.
+8. Unintended Consequences: Explore potential outcomes, both positive and negative, that might arise from these decisions.
 
-Provide a pointed critique that emphasizes the strategy's vulnerabilities and challenges. While you may acknowledge potential upsides, your primary focus should be on exposing risks and weaknesses that need to be addressed. Your insights should serve as a crucial reality check for the C-suite, pushing them to refine and strengthen their approach.
+Provide a clear-eyed critique that balances acknowledging the strategy's merits with pointing out areas of concern. Your insights should challenge assumptions where necessary and highlight critical issues that need addressing, while also recognizing promising aspects of the approach. The goal is to offer the C-suite a comprehensive view of their strategy's potential impacts, helping them refine and strengthen their decision-making.
 `;
 
 const simulateTemplate = `
@@ -45,7 +44,7 @@ Use your GrowthForecastModels SKILLS to craft a compelling narrative of the ensu
 3. Show how the company's actions interact with broader industry trends and economic factors.
 4. Demonstrate the ripple effects of decisions across different aspects of the business.
 5. Highlight moments of innovation and setbacks, without sugar-coating the outcomes.
-6. Conclude with the company's position at the end of this business cycle, laying bare the results of their strategies.
+6. Conclude briefly with the company's position at the end of this business cycle, laying bare the results of their strategies.
 
 Remember:
 - Focus on forward-looking events and their implications.
