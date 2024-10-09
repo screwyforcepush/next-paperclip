@@ -3,7 +3,6 @@ import { Annotation } from "@langchain/langgraph";
 import { BaseMessage, AIMessage } from "@langchain/core/messages";
 import { ceoAgent } from "./ceoAgent";
 import { ctoAgent, cfoAgent, cmoAgent, cooAgent } from "./cSuiteAgents";
-import { BUSINESS_OVERVIEW } from '@lib/constants/business'; // Updated import
 
 interface CEODecision {
   deliberation: string;
@@ -118,29 +117,29 @@ export async function* runSimulation(
   workflow.addNode("COO", createCSuiteNode("COO", cooAgent));
 
   console.log("[runSimulation] Adding edges to workflow");
-  workflow.addEdge(START, "CEO");
+  workflow.addEdge(START, "CEO" as typeof END);
   
   workflow.addConditionalEdges(
-    "CEO",
+    "CEO" as typeof START,
     routeAgent,
     {
-      CTO: "CTO",
-      CFO: "CFO",
-      CMO: "CMO",
-      COO: "COO",
+      CTO: "CTO" as typeof START,
+      CFO: "CFO" as typeof START,
+      CMO: "CMO" as typeof START,
+      COO: "COO" as typeof START,
       [END]: END,
     }
   );
   
   for (const role of ["CTO", "CFO", "CMO", "COO"] as NodeNames[]) {
     workflow.addConditionalEdges(
-      role,
+      role as typeof START,
       routeAgent,
       {
-        CTO: "CTO",
-        CFO: "CFO",
-        CMO: "CMO",
-        COO: "COO",
+        CTO: "CTO" as typeof START,
+        CFO: "CFO" as typeof START,
+        CMO: "CMO" as typeof START,
+        COO: "COO" as typeof START,
         [END]: END,
       }
     );

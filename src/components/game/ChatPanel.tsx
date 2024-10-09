@@ -8,6 +8,7 @@ import MessageBubble from './MessageBubble';
 import BusinessCycleHeader from './BusinessCycleHeader';
 import SimulationAccordion from './SimulationAccordion';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Message } from '@/types/game';
 
 const ChatPanel: React.FC = () => {
   const { gameState } = useGameState();

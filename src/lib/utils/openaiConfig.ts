@@ -58,13 +58,12 @@ const DEFAULT_METADATA = {
 export const getChatOpenAI = (() => {
   let instance: ChatOpenAI | null = null;
 
-  return (metadata: any) => {
+  return (metadata?: any) => {
     if (!instance) {
       const env = getServerSideEnv();
-      console.log(env);
+      console.log("serversideenv", env);
       instance = new ChatOpenAI({
-        // openAIApiKey: env.OPENAI_API_KEY,
-        openAIApiKey: "sk-SWEGTVLg6xizYG8vFeIo1w", //TODO remove this need to rebuild project but getting type errors
+        openAIApiKey: env.OPENAI_API_KEY,
         modelName: "oaimini",
         temperature: 1.0,
         configuration: { 

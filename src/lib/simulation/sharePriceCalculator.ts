@@ -36,9 +36,14 @@ function calculateTrend(changes: Change[], periods: number): number {
     return changes.slice(-periods).reduce((sum, change) => sum + weightedChange(change), 0) / periods;
 }
 
+function addOrder(orders: Order[], persona: string, action: 'Buy' | 'Sell', reason: string): Order[] {
+    orders.push({ persona, action, reason });
+    return orders;
+}
+
 function analyzeKPIs(kpiArray: KPI[]): Order[] {
     try {
-        const orders: Order[] = [];
+        let orders: Order[] = [];
         const buyThreshold = 0.02;
         const sellThreshold = -0.02;
         const hysteresis = 0.01;
@@ -73,136 +78,132 @@ function analyzeKPIs(kpiArray: KPI[]): Order[] {
         const shortTermTrend = calculateTrend(changes, 3);
         const longTermTrend = calculateTrend(changes, changes.length);
 
-        function addOrder(persona: string, action: 'Buy' | 'Sell', reason: string): void {
-            orders.push({ persona, action, reason });
-        }
-
         // Trend Followers
         if (shortTermTrend < sellThreshold && longTermTrend < sellThreshold - hysteresis) {
-            addOrder('Trend Follower', 'Sell', 'Declining trend in weighted KPIs');
+            orders = addOrder(orders, 'Trend Follower', 'Sell', 'Declining trend in weighted KPIs');
         } else if (shortTermTrend > buyThreshold && longTermTrend > buyThreshold + hysteresis) {
-            addOrder('Trend Follower', 'Buy', 'Rising trend in weighted KPIs');
+            orders = addOrder(orders, 'Trend Follower', 'Buy', 'Rising trend in weighted KPIs');
         }
 
         // Long-term Investors
         const averageProfitMarginChange = calculateAverageChange(changes, 'profitMargin');
         if (averageProfitMarginChange < -0.01) {
-            addOrder('Long-term Investor', 'Sell', 'Consistent profit margin decline');
+            orders = addOrder(orders, 'Long-term Investor', 'Sell', 'Consistent profit margin decline');
         } else if (averageProfitMarginChange > 0.01) {
-            addOrder('Long-term Investor', 'Buy', 'Consistent profit margin improvement');
+            orders = addOrder(orders, 'Long-term Investor', 'Buy', 'Consistent profit margin improvement');
         }
 
         // Short Sellers
         if (lastChange.revenue < 0 && lastChange.profitMargin < 0) {
-            addOrder('Short Seller', 'Sell', 'Declining revenue and profit margin');
+            orders = addOrder(orders, 'Short Seller', 'Sell', 'Declining revenue and profit margin');
         } else if (lastChange.revenue > 0 && lastChange.profitMargin > 0) {
-            addOrder('Short Seller', 'Buy', 'Rising revenue and profit margin (potential short cover)');
+            orders = addOrder(orders, 'Short Seller', 'Buy', 'Rising revenue and profit margin (potential short cover)');
         }
 
         // Value Investors
         const totalRevenueDrop = (lastKPI.revenue - uniqueKPIArray[0].revenue) / uniqueKPIArray[0].revenue;
         if (totalRevenueDrop < -valuationThreshold) {
-            addOrder('Value Investor', 'Buy', 'Potential undervaluation after significant drop');
+            orders = addOrder(orders, 'Value Investor', 'Buy', 'Potential undervaluation after significant drop');
         } else if (totalRevenueDrop > valuationThreshold) {
-            addOrder('Value Investor', 'Sell', 'Potential overvaluation after significant rise');
+            orders = addOrder(orders, 'Value Investor', 'Sell', 'Potential overvaluation after significant rise');
         }
 
         // Growth Investors
         if (lastChange.revenue < 0 && lastChange.marketShare < 0 && lastChange.innovationIndex < 0) {
-            addOrder('Growth Investor', 'Sell', 'Decline in growth metrics');
+            orders = addOrder(orders, 'Growth Investor', 'Sell', 'Decline in growth metrics');
         } else if (lastChange.revenue > 0 && lastChange.marketShare > 0 && lastChange.innovationIndex > 0) {
-            addOrder('Growth Investor', 'Buy', 'Improvement in growth metrics');
+            orders = addOrder(orders, 'Growth Investor', 'Buy', 'Improvement in growth metrics');
         }
 
         // Momentum Traders
         const recentNegativeTrend = isConsistentTrend(changes.slice(-3), 'revenue', false);
         const recentPositiveTrend = isConsistentTrend(changes.slice(-3), 'revenue', true);
         if (recentNegativeTrend) {
-            addOrder('Momentum Trader', 'Sell', 'Consistent negative momentum');
+            orders = addOrder(orders, 'Momentum Trader', 'Sell', 'Consistent negative momentum');
         } else if (recentPositiveTrend) {
-            addOrder('Momentum Trader', 'Buy', 'Consistent positive momentum');
+            orders = addOrder(orders, 'Momentum Trader', 'Buy', 'Consistent positive momentum');
         }
 
         // Contrarian Investors
         if (lastChange.revenue < 0 && shortTermTrend < sellThreshold) {
-            addOrder('Contrarian Investor', 'Buy', 'Buying in the face of negative trends');
+            orders = addOrder(orders, 'Contrarian Investor', 'Buy', 'Buying in the face of negative trends');
         } else if (lastChange.revenue > 0 && shortTermTrend > buyThreshold) {
-            addOrder('Contrarian Investor', 'Sell', 'Selling in the face of positive trends');
+            orders = addOrder(orders, 'Contrarian Investor', 'Sell', 'Selling in the face of positive trends');
         }
 
         // Algorithmic Traders
         const algoSignal = changes.reduce((sum, change) => sum + weightedChange(change), 0);
         if (algoSignal < -buyThreshold) {
-            addOrder('Algorithmic Trader', 'Sell', 'Negative signal from cumulative weighted changes');
+            orders = addOrder(orders, 'Algorithmic Trader', 'Sell', 'Negative signal from cumulative weighted changes');
         } else if (algoSignal > buyThreshold) {
-            addOrder('Algorithmic Trader', 'Buy', 'Positive signal from cumulative weighted changes');
+            orders = addOrder(orders, 'Algorithmic Trader', 'Buy', 'Positive signal from cumulative weighted changes');
         }
 
         // Dividend Investors
         if (lastChange.profitMargin < -0.01) {
-            addOrder('Dividend Investor', 'Sell', 'Decline in profit margin threatening dividends');
+            orders = addOrder(orders, 'Dividend Investor', 'Sell', 'Decline in profit margin threatening dividends');
         } else if (lastChange.profitMargin > 0.01) {
-            addOrder('Dividend Investor', 'Buy', 'Improvement in profit margin supporting dividends');
+            orders = addOrder(orders, 'Dividend Investor', 'Buy', 'Improvement in profit margin supporting dividends');
         }
 
         // Technical Analysts
         const movingAverage = changes.slice(-5).reduce((sum, change) => sum + weightedChange(change), 0) / 5;
         if (weightedChange(lastChange) < movingAverage - hysteresis) {
-            addOrder('Technical Analyst', 'Sell', 'Weighted change below moving average');
+            orders = addOrder(orders, 'Technical Analyst', 'Sell', 'Weighted change below moving average');
         } else if (weightedChange(lastChange) > movingAverage + hysteresis) {
-            addOrder('Technical Analyst', 'Buy', 'Weighted change above moving average');
+            orders = addOrder(orders, 'Technical Analyst', 'Buy', 'Weighted change above moving average');
         }
 
         // Fundamental Analysts
         if (lastChange.clvCacRatio < 0 && lastChange.productionEfficiencyIndex < 0) {
-            addOrder('Fundamental Analyst', 'Sell', 'Declining operational efficiency');
+            orders = addOrder(orders, 'Fundamental Analyst', 'Sell', 'Declining operational efficiency');
         } else if (lastChange.clvCacRatio > 0 && lastChange.productionEfficiencyIndex > 0) {
-            addOrder('Fundamental Analyst', 'Buy', 'Improving operational efficiency');
+            orders = addOrder(orders, 'Fundamental Analyst', 'Buy', 'Improving operational efficiency');
         }
 
         // Swing Traders
         const swingSignal = changes.slice(-3).reduce((sum, change) => sum + weightedChange(change), 0);
         if (swingSignal < -buyThreshold) {
-            addOrder('Swing Trader', 'Sell', 'Short-term downward swing detected');
+            orders = addOrder(orders, 'Swing Trader', 'Sell', 'Short-term downward swing detected');
         } else if (swingSignal > buyThreshold) {
-            addOrder('Swing Trader', 'Buy', 'Short-term upward swing detected');
+            orders = addOrder(orders, 'Swing Trader', 'Buy', 'Short-term upward swing detected');
         }
 
         // Event-Driven Traders
         if (Math.abs(weightedChange(lastChange)) > 0.05) {
             const action = weightedChange(lastChange) > 0 ? 'Buy' : 'Sell';
-            addOrder('Event-Driven Trader', action, 'Significant change in weighted metrics suggesting major event');
+            orders = addOrder(orders, 'Event-Driven Trader', action, 'Significant change in weighted metrics suggesting major event');
         }
 
         // FOMO Traders (reacting to other traders)
         const sellOrders = orders.filter(order => order.action === 'Sell').length;
         const buyOrders = orders.filter(order => order.action === 'Buy').length;
         if (sellOrders > buyOrders * 2) {
-            addOrder('FOMO Trader', 'Sell', 'Following the crowd in a strong sell trend');
+            orders = addOrder(orders, 'FOMO Trader', 'Sell', 'Following the crowd in a strong sell trend');
         } else if (buyOrders > sellOrders * 2) {
-            addOrder('FOMO Trader', 'Buy', 'Following the crowd in a strong buy trend');
+            orders = addOrder(orders, 'FOMO Trader', 'Buy', 'Following the crowd in a strong buy trend');
         }
 
         // Noise Traders (random decision based on minor fluctuations)
         if (Math.abs(weightedChange(lastChange)) > 0.01) {
             const action = Math.random() > 0.5 ? 'Buy' : 'Sell';
-            addOrder('Noise Trader', action, 'Random decision based on minor fluctuations');
+            orders = addOrder(orders, 'Noise Trader', action, 'Random decision based on minor fluctuations');
         }
 
         // Quant Traders (using multiple data points)
         const quantScore = changes.reduce((score, change) => score + weightedChange(change), 0);
         if (quantScore < -0.5) {
-            addOrder('Quant Trader', 'Sell', 'Negative composite score from multiple metrics');
+            orders = addOrder(orders, 'Quant Trader', 'Sell', 'Negative composite score from multiple metrics');
         } else if (quantScore > 0.5) {
-            addOrder('Quant Trader', 'Buy', 'Positive composite score from multiple metrics');
+            orders = addOrder(orders, 'Quant Trader', 'Buy', 'Positive composite score from multiple metrics');
         }
 
         // Enhancing the Momentum Traders logic
         const momentumThreshold = 0.01;
         if (shortTermTrend > momentumThreshold && longTermTrend > momentumThreshold) {
-            addOrder('Momentum Trader', 'Buy', 'Positive momentum detected');
+            orders = addOrder(orders, 'Momentum Trader', 'Buy', 'Positive momentum detected');
         } else if (shortTermTrend < -momentumThreshold && longTermTrend < -momentumThreshold) {
-            addOrder('Momentum Trader', 'Sell', 'Negative momentum detected');
+            orders = addOrder(orders, 'Momentum Trader', 'Sell', 'Negative momentum detected');
         }
 
         return orders;
