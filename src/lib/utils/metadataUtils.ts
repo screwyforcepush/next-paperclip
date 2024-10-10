@@ -1,4 +1,19 @@
-import { GameState } from '@/types/game';
+import { GameState, KPI } from '@/types/game';
+
+// Add this type definition
+export type LLMMetadata = {
+  gameId: string;
+  sessionId: string;
+  userId: string;
+  cycle: number;
+  metrics: {
+    kpis: KPI;
+    scenario?: string;
+    kpiChange?: { [key: string]: number };
+    [key: string]: any;  // Allow for additional properties
+  };
+  trace_id: string;
+};
 
 let cryptoUtil: { randomUUID: () => string };
 
@@ -17,13 +32,17 @@ export function generateUUID(): string {
   return cryptoUtil.randomUUID();
 }
 
-export function llmMetadataFromState(gameState: GameState) {
+export function llmMetadataFromState(gameState: GameState, metrics: Record<string, any> = {}): LLMMetadata {
   return {
     gameId: gameState.gameId,
     sessionId: gameState.sessionId,
     userId: gameState.userId,
     cycle: gameState.currentCycle,
-    kpis: gameState.kpiHistory[gameState.kpiHistory.length - 1] || {},
+    metrics: {
+      ...metrics,
+      kpis: gameState.kpiHistory[gameState.kpiHistory.length - 1] || {},
+      scenario: gameState.currentSituation
+    },
     trace_id: generateUUID()
   };
 }

@@ -6,7 +6,7 @@ import { analyzeImpact } from './impactAnalysis';
 import { generateSummary, updateOverview } from './summaryGenerator';
 import { calculateSharePrice } from './sharePriceCalculator';
 import { BUSINESS_OVERVIEW } from '@lib/constants/business'; // Add this import
-import { llmMetadataFromState } from '@/lib/utils/metadataUtils';
+import { llmMetadataFromState, LLMMetadata } from '@/lib/utils/metadataUtils';
 import { Logger } from '@/lib/utils/logger'; // Add this import
 
 // Define a type for generator messages
@@ -18,6 +18,12 @@ type GeneratorMessage =
   | { type: 'business_overview'; content: string }
   | { role: 'scenario'; content: string };
 
+function calculatePercentageChange(oldValue: number, newValue: number): number {
+  if (oldValue === 0) {
+    return newValue === 0 ? 0 : 100; // Avoid division by zero
+  }
+  return Number(((newValue - oldValue) / Math.abs(oldValue) * 100).toFixed(2));
+}
 export class BusinessEngine {
   static async *runBusinessCycle(
     gameState: GameState,
@@ -27,7 +33,7 @@ export class BusinessEngine {
 
     const currentCycle = gameState.currentCycle;
     const currentOverview = gameState.businessOverview || BUSINESS_OVERVIEW;
-    const llmMetadata = llmMetadataFromState(gameState);
+    const llmMetadata: LLMMetadata = llmMetadataFromState(gameState, { userAdvice: userInput });
 
     // Add simulation group message with cycleNumber
     const simulationGroupMessage: Message = {
@@ -106,7 +112,24 @@ export class BusinessEngine {
     Logger.debug('[BusinessEngine] New KPIs:', JSON.stringify(newKPIsWithSharePrice, null, 2));
     yield { type: 'kpis', content: newKPIsWithSharePrice };
 
-    llmMetadata.kpis = newKPIsWithSharePrice;
+    llmMetadata.metrics.kpis = newKPIsWithSharePrice;
+    // Calculate KPI changes as percentages
+    const previousKPIs = gameState.kpiHistory[gameState.kpiHistory.length - 1] || newKPIsWithSharePrice;
+    const kpiChanges = {
+      revenue: calculatePercentageChange(previousKPIs.revenue, newKPIsWithSharePrice.revenue),
+      profitMargin: calculatePercentageChange(previousKPIs.profitMargin, newKPIsWithSharePrice.profitMargin),
+      marketShare: calculatePercentageChange(previousKPIs.marketShare, newKPIsWithSharePrice.marketShare),
+      innovationIndex: calculatePercentageChange(previousKPIs.innovationIndex, newKPIsWithSharePrice.innovationIndex),
+      clvCacRatio: calculatePercentageChange(previousKPIs.clvCacRatio, newKPIsWithSharePrice.clvCacRatio),
+      productionEfficiencyIndex: calculatePercentageChange(previousKPIs.productionEfficiencyIndex, newKPIsWithSharePrice.productionEfficiencyIndex),
+      sharePrice: calculatePercentageChange(previousKPIs.sharePrice, newKPIsWithSharePrice.sharePrice),
+    };
+
+    Logger.debug('[BusinessEngine] KPI Changes (%):', JSON.stringify(kpiChanges, null, 2));
+
+    llmMetadata.metrics.kpiChange = kpiChanges
+    //create kpi change array
+
     // Update business overview
     const updatedOverview = await updateOverview(currentOverview, impactAnalysis.content, llmMetadata);
     Logger.debug('[BusinessEngine] Updated overview:', updatedOverview);
@@ -142,6 +165,10 @@ export class BusinessEngine {
     yield businessCycleMessage;
 
     llmMetadata.cycle = newCycle;
+    llmMetadata.metrics.userAdvice = undefined;
+    llmMetadata.metrics.kpiChange = undefined
+    llmMetadata.metrics.scenario = undefined
+    
     Logger.debug('[BusinessEngine] Generating new scenario and advice request');
     let newScenario: string;
     let adviceRequest: string;

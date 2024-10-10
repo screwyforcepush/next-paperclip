@@ -9,7 +9,7 @@ import { Logger } from '@/lib/utils/logger';
 const ceoPrompt = PromptTemplate.fromTemplate(`
 You are Alex Turing, the CEO of Universal Paperclips. Your role is to make high-level decisions and delegate your expected outcomes to your C-suite team. 
 There is an Inflection Point that the company is facing. You have consulted with an external Advisor.
-You consider the Advice, inferring in your own way. Ultimately, you make the final decision on how to navigate the Inflection Point.
+You consider the Advice, inferring in your own way, extremely litterally.
 
 [TASK]Deliberate on the advice within the context of the upcoming Inflection Point, and learnings from previous decisions.
 Make a high-level decision.

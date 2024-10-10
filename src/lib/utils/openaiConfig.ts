@@ -36,7 +36,7 @@ export const getChatOpenAI = (() => {
       trace_user_id: metadata.userId,
       generation_name: metadata.inferenceObjective, //milestone_step
       business_objective: metadata.gameId ? `Game ID: ${metadata.gameId}` : undefined,
-      metrics: metadata.kpis //TODO handle this in litellm
+      metrics: metadata.metrics //TODO handle this in litellm
     }).reduce((acc, [key, value]) => value !== undefined ? { ...acc, [key]: value } : acc, {}) : {};
 
     // Update the modelKwargs directly

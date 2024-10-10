@@ -466,10 +466,12 @@ innovationIndex: number;
    f. **Impact Analysis**: The system analyzes the potential impact of the proposed actions.
    
    g. **KPI Update**: KPIs are calculated and updated based on the simulation.
+
+   h. **Share Price Update**: Various trading personas decide to buy or sell based on KPI history.
    
-   h. **Display Results**: The updated KPIs are displayed on the dashboard.
+   i. **Display Results**: The updated KPIs are displayed on the dashboard.
    
-   i. **Cycle Repeat**: The cycle repeats with a new inflection point.
+   j. **Cycle Repeat**: The cycle repeats with a new inflection point.
 
 ## AI Agent Implementation
 
