@@ -1,5 +1,6 @@
 import { GameState } from '@/types/game';
 import { v4 as uuidv4 } from 'uuid';
+import { Logger } from '@/lib/utils/logger';
 
 const GAME_STATE_KEY = 'universalPaperclips_gameState';
 
@@ -15,20 +16,20 @@ export function loadGameState(): GameState | null {
           ...parsedState,
           sessionId: uuidv4()
         };
-        console.log('[localStorage] Loaded game state from local storage:', refreshedState);
+        Logger.debug('[localStorage] Loaded game state from local storage:', refreshedState);
         // Save the refreshed state back to localStorage
         saveGameState(refreshedState);
         return refreshedState;
       } else {
-        console.error('[localStorage] Invalid game state found in local storage');
+        Logger.error('[localStorage] Invalid game state found in local storage');
         return null;
       }
     } else {
-      console.log('[localStorage] No saved game state found in local storage');
+      Logger.debug('[localStorage] No saved game state found in local storage');
       return null;
     }
   } catch (error) {
-    console.error('[localStorage] Error loading game state:', error);
+    Logger.error('[localStorage] Error loading game state:', error);
     return null;
   }
 }
@@ -50,7 +51,7 @@ export function saveGameState(gameState: GameState): void {
   if (typeof window !== 'undefined') {
     const stateToSave = JSON.stringify(gameState);
     localStorage.setItem(GAME_STATE_KEY, stateToSave);
-    console.log('[localStorage] Saved game state to local storage');
+    Logger.debug('[localStorage] Saved game state to local storage');
   }
 }
 
@@ -65,6 +66,6 @@ export function setGameState(state: GameState): void {
 export function clearGameState(): void {
   if (typeof window !== 'undefined') {
     localStorage.removeItem(GAME_STATE_KEY);
-    console.log('[localStorage] Cleared game state from local storage');
+    Logger.debug('[localStorage] Cleared game state from local storage');
   }
 }

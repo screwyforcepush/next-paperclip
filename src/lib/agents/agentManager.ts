@@ -3,6 +3,7 @@ import { Annotation } from "@langchain/langgraph";
 import { BaseMessage, AIMessage } from "@langchain/core/messages";
 import { ceoAgent } from "./ceoAgent";
 import { ctoAgent, cfoAgent, cmoAgent, cooAgent } from "./cSuiteAgents";
+import { Logger } from '@/lib/utils/logger';
 
 interface CEODecision {
   deliberation: string;
@@ -37,10 +38,10 @@ const AgentState = Annotation.Root({
 type NodeNames = "CEO" | "CTO" | "CFO" | "CMO" | "COO";
 
 function routeAgent(state: typeof AgentState.State): NodeNames | typeof END {
-//   console.log("[routeAgent] Current state:", JSON.stringify(state, null, 2));
+  // Logger.debug("[routeAgent] Current state:", JSON.stringify(state, null, 2));
   
   if (state.completedAgents.length === 0) {
-    console.log("[routeAgent] Starting with CEO");
+    Logger.debug("[routeAgent] Starting with CEO");
     return "CEO";
   }
   
@@ -48,18 +49,18 @@ function routeAgent(state: typeof AgentState.State): NodeNames | typeof END {
     const cSuiteRoles = ["CTO", "CFO", "CMO", "COO"];
     for (const role of cSuiteRoles) {
       if (!state.completedAgents.includes(role)) {
-        console.log(`[routeAgent] Routing to ${role}`);
+        Logger.debug(`[routeAgent] Routing to ${role}`);
         return role as NodeNames;
       }
     }
   }
   
-  console.log("[routeAgent] All agents completed, ending simulation");
+  Logger.debug("[routeAgent] All agents completed, ending simulation");
   return END;
 }
 
 const ceoNode = async (state: typeof AgentState.State) => {
-  console.log("[ceoNode] Starting CEO node");
+  Logger.debug("[ceoNode] Starting CEO node");
   try {
     // Pass llmMetadata to ceoAgent
     const ceoResponse: CEODecision = await ceoAgent({
@@ -69,7 +70,7 @@ const ceoNode = async (state: typeof AgentState.State) => {
       currentOverview: state.currentOverview,
       llmMetadata: state.llmMetadata,
     });
-    console.log("[ceoNode] CEO response:", ceoResponse);
+    Logger.debug("[ceoNode] CEO response:", ceoResponse);
     const reponse_string = ceoResponse.deliberation + "\n" + ceoResponse.decision;
     return {
       messages: [new AIMessage({ content: reponse_string, name: "CEO" })],
@@ -77,7 +78,7 @@ const ceoNode = async (state: typeof AgentState.State) => {
       completedAgents: [...state.completedAgents, "CEO"],
     };
   } catch (error) {
-    console.error("[ceoNode] Error in CEO node:", error);
+    Logger.error("[ceoNode] Error in CEO node:", error);
     throw error;
   }
 };
@@ -87,7 +88,7 @@ const createCSuiteNode = (
   agent: (params: any) => Promise<{ messages: AIMessage[] }>
 ) =>
   async (state: typeof AgentState.State) => {
-    console.log(`[${role}Node] Starting ${role} node`);
+    Logger.debug(`[${role}Node] Starting ${role} node`);
     if (state.ceoDecision && state.ceoDecision.assignments[role]) {
       const assignment = state.ceoDecision.assignments[role];
       const response = await agent({
@@ -96,7 +97,7 @@ const createCSuiteNode = (
         currentOverview: state.currentOverview,
         llmMetadata: state.llmMetadata, // Pass llmMetadata to agent
       });
-      console.log(`[${role}Node] assignment ${assignment} ${role} response:`, response.messages[0].content);
+      Logger.debug(`[${role}Node] assignment ${assignment} ${role} response:`, response.messages[0].content);
       return {
         messages: [new AIMessage({ content: response.messages[0].content as string, name: role })],
         completedAgents: [...state.completedAgents, role],
@@ -111,21 +112,21 @@ export async function* runSimulation(
   currentOverview: string,
   llmMetadata: any
 ) {
-  console.log("[runSimulation] Starting simulation");
-  console.log("[runSimulation] Situation:", situation);
-  console.log("[runSimulation] User advice:", userAdvice);
-  console.log("[runSimulation] Current overview:", currentOverview);
+  Logger.debug("[runSimulation] Starting simulation");
+  Logger.debug("[runSimulation] Situation:", situation);
+  Logger.debug("[runSimulation] User advice:", userAdvice);
+  Logger.debug("[runSimulation] Current overview:", currentOverview);
 
   const workflow = new StateGraph(AgentState);
 
-  console.log("[runSimulation] Adding nodes to workflow");
+  Logger.debug("[runSimulation] Adding nodes to workflow");
   workflow.addNode("CEO", ceoNode);
   workflow.addNode("CTO", createCSuiteNode("CTO", ctoAgent));
   workflow.addNode("CFO", createCSuiteNode("CFO", cfoAgent));
   workflow.addNode("CMO", createCSuiteNode("CMO", cmoAgent));
   workflow.addNode("COO", createCSuiteNode("COO", cooAgent));
 
-  console.log("[runSimulation] Adding edges to workflow");
+  Logger.debug("[runSimulation] Adding edges to workflow");
   workflow.addEdge(START, "CEO" as typeof END);
   
   workflow.addConditionalEdges(
@@ -154,10 +155,10 @@ export async function* runSimulation(
     );
   }
 
-  console.log("[runSimulation] Compiling graph");
+  Logger.debug("[runSimulation] Compiling graph");
   const graph = workflow.compile();
 
-  console.log("[runSimulation] Invoking graph");
+  Logger.debug("[runSimulation] Invoking graph");
   try {
     const stream = await graph.stream(
       {
@@ -177,12 +178,11 @@ export async function* runSimulation(
     const yieldedMessages = new Set();
 
     for await (const chunk of stream) {
-    //   console.log("[runSimulation] Received chunk:", JSON.stringify(chunk, null, 2));
       if (chunk.messages && chunk.messages.length > 0) {
         for (const message of chunk.messages) {
           const messageKey = `${message['name']}-${message['content']}`;
           if (!yieldedMessages.has(messageKey)) {
-            console.log("[runSimulation] Yielding message:", message.name);
+            Logger.debug("[runSimulation] Yielding message:", message.name);
             yieldedMessages.add(messageKey);
             yield {
               role: "simulation",
@@ -190,17 +190,17 @@ export async function* runSimulation(
               name: message.name,
             };
           } else {
-            console.log("[runSimulation] Skipping duplicate message:", message.name);
+            Logger.debug("[runSimulation] Skipping duplicate message:", message.name);
           }
         }
       } else {
-        console.log("[runSimulation] Chunk does not contain messages");
+        Logger.debug("[runSimulation] Chunk does not contain messages");
       }
     }
 
-    console.log("[runSimulation] Simulation complete.");
+    Logger.debug("[runSimulation] Simulation complete.");
   } catch (error) {
-    console.error("[runSimulation] Error invoking graph:", error);
+    Logger.error("[runSimulation] Error invoking graph:", error);
     throw error;
   }
 }

@@ -2,13 +2,13 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { getChatOpenAI } from '@/lib/utils/openaiConfig';
 import { StructuredOutputParser } from "@langchain/core/output_parsers"; 
 import { z } from "zod"; 
+import { Logger } from '@/lib/utils/logger';
 
 export async function generateScenario(updatedOverview: string, llmMetadata: any, cycle: string, scenario?: string): Promise<{ scenario: string; advice_request: string }> {
-  console.log("[generateScenario] Starting scenario generation");
+  Logger.debug("[generateScenario] Starting scenario generation");
 
   try {
-
-    console.log("[generateScenario] Initializing ChatOpenAI model");
+    Logger.debug("[generateScenario] Initializing ChatOpenAI model");
     const model = getChatOpenAI({...llmMetadata, inferenceObjective: "New Scenario"});
 
     const template = `
@@ -58,9 +58,9 @@ export async function generateScenario(updatedOverview: string, llmMetadata: any
     
     `;
 
-    console.log("[generateScenario] Creating prompt template");
+    Logger.debug("[generateScenario] Creating prompt template");
     const prompt = PromptTemplate.fromTemplate(template);
-    console.log("[generateScenario] prompt", prompt);
+    Logger.debug("[generateScenario] prompt", prompt);
 
     const outputParser = StructuredOutputParser.fromZodSchema(
       z.object({
@@ -71,17 +71,17 @@ export async function generateScenario(updatedOverview: string, llmMetadata: any
 
     const chain = prompt.pipe(model).pipe(outputParser);
 
-    console.log("[generateScenario] Invoking AI model");
+    Logger.debug("[generateScenario] Invoking AI model");
     const parsedResult = await chain.invoke({});
-    console.log("[generateScenario] Scenario generated successfully");
-    console.log("[generateScenario] Generated scenario:", parsedResult.scenario);
-    console.log("[generateScenario] Advice request:", parsedResult.advice_request);
+    Logger.debug("[generateScenario] Scenario generated successfully");
+    Logger.debug("[generateScenario] Generated scenario:", parsedResult.scenario);
+    Logger.debug("[generateScenario] Advice request:", parsedResult.advice_request);
     return parsedResult;
   } catch (error) {
-    console.error("[generateScenario] Error generating scenario:", error);
+    Logger.error("[generateScenario] Error generating scenario:", error);
     if (error instanceof Error) {
-      console.error("[generateScenario] Error message:", error.message);
-      console.error("[generateScenario] Error stack:", error.stack);
+      Logger.error("[generateScenario] Error message:", error.message);
+      Logger.error("[generateScenario] Error stack:", error.stack);
     }
     throw error;
   }

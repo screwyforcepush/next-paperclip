@@ -4,6 +4,7 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { z } from "zod";
+import { Logger } from '@/lib/utils/logger';
 
 async function calculateKPIImpact(
   kpiName: string,
@@ -84,18 +85,18 @@ Where:
     simulation,
   });
 
-  console.log(`[calculateKPIImpact] Impact analysis for ${kpiName}: ${response.impactAnalysis}`);
-  console.log(`[calculateKPIImpact] Impact score for ${kpiName}: ${response.impactScore}`);
+  Logger.debug(`[calculateKPIImpact] Impact analysis for ${kpiName}: ${response.impactAnalysis}`);
+  Logger.debug(`[calculateKPIImpact] Impact score for ${kpiName}: ${response.impactScore}`);
 
   // Convert impact score to percentage change
   const multiplier = response.impactScore>0?1:-1;
   const rndMultiplier = Math.random() * multiplier;
   const percentageChange = response.impactScore * (response.impactScore * rndMultiplier); 
-  console.log(`[calculateKPIImpact] Percentage change for ${kpiName}: ${percentageChange}%`);
+  Logger.debug(`[calculateKPIImpact] Percentage change for ${kpiName}: ${percentageChange}%`);
 
   // Apply percentage change to the current value
   const newValue = currentValue * (1 + percentageChange / 100);
-  console.log(`[calculateKPIImpact] New value for ${kpiName}: ${newValue}`);
+  Logger.debug(`[calculateKPIImpact] New value for ${kpiName}: ${newValue}`);
 
   return newValue;
 }
@@ -107,11 +108,11 @@ export async function calculateNewKPIs(
   llmMetadata: any // Accept llmMetadata
 ): Promise<KPI> {
   try {
-    console.log("[calculateNewKPIs] Starting KPI calculation");
-    console.log("[calculateNewKPIs] Current Situation:", gameState.currentSituation);
-    console.log("[calculateNewKPIs] Current KPIs:", JSON.stringify(gameState.kpiHistory[gameState.kpiHistory.length - 1], null, 2));
-    console.log("[calculateNewKPIs] Simulation Messages:", JSON.stringify(simulationMessages, null, 2));
-    console.log("[calculateNewKPIs] Final Simulation Result:", simulation);
+    Logger.debug("[calculateNewKPIs] Starting KPI calculation");
+    Logger.debug("[calculateNewKPIs] Current Situation:", gameState.currentSituation);
+    Logger.debug("[calculateNewKPIs] Current KPIs:", JSON.stringify(gameState.kpiHistory[gameState.kpiHistory.length - 1], null, 2));
+    Logger.debug("[calculateNewKPIs] Simulation Messages:", JSON.stringify(simulationMessages, null, 2));
+    Logger.debug("[calculateNewKPIs] Final Simulation Result:", simulation);
 
     const currentKPIs = gameState.kpiHistory[gameState.kpiHistory.length - 1];
     const simplifiedMessages = simulationMessages
@@ -122,7 +123,7 @@ export async function calculateNewKPIs(
 
     for (const [kpiName, currentValue] of Object.entries(currentKPIs)) {
       if (kpiName !== 'sharePrice') {
-        console.log(`[calculateNewKPIs] Calculating impact for ${kpiName}. Current value: ${currentValue}`);
+        Logger.debug(`[calculateNewKPIs] Calculating impact for ${kpiName}. Current value: ${currentValue}`);
         const newValue = await calculateKPIImpact(
           kpiName,
           gameState.currentSituation,
@@ -132,19 +133,19 @@ export async function calculateNewKPIs(
           llmMetadata // Pass llmMetadata to calculateKPIImpact
         );
         newKPIs[kpiName as keyof KPI] = newValue;
-        console.log(`[calculateNewKPIs] New value for ${kpiName}: ${newValue}`);
-        console.log(`[calculateNewKPIs] Percentage change for ${kpiName}: ${((newValue - currentValue) / currentValue * 100).toFixed(2)}%`);
+        Logger.debug(`[calculateNewKPIs] New value for ${kpiName}: ${newValue}`);
+        Logger.debug(`[calculateNewKPIs] Percentage change for ${kpiName}: ${((newValue - currentValue) / currentValue * 100).toFixed(2)}%`);
       }
     }
 
-    console.log("[calculateNewKPIs] All new KPIs calculated:", JSON.stringify(newKPIs, null, 2));
+    Logger.info("[calculateNewKPIs] All new KPIs calculated:", JSON.stringify(newKPIs, null, 2));
 
     return newKPIs as KPI;
   } catch (error) {
-    console.error("[calculateNewKPIs] Error calculating new KPIs:", error);
+    Logger.error("[calculateNewKPIs] Error calculating new KPIs:", error);
     if (error instanceof Error) {
-      console.error("[calculateNewKPIs] Error message:", error.message);
-      console.error("[calculateNewKPIs] Error stack:", error.stack);
+      Logger.error("[calculateNewKPIs] Error message:", error.message);
+      Logger.error("[calculateNewKPIs] Error stack:", error.stack);
     }
     // In case of an error, return the current KPIs unchanged
     return gameState.kpiHistory[gameState.kpiHistory.length - 1];

@@ -29,7 +29,7 @@ const initialState: GameState = {
 };
 
 const gameReducer = (state: GameState, action: Action): GameState => {
-  Logger.info('Dispatching action:', action);
+  Logger.debug('Dispatching action:', action);
   switch (action.type) {
     case GameActionType.UpdateKPI:
       return {
@@ -78,10 +78,10 @@ const initializer = (): GameState => {
   try {
     const savedState = loadGameState();
     if (savedState) {
-      console.log('[GameStateContext] Initializing with saved state:', savedState);
+      Logger.info('[GameStateContext] Initializing with saved state:', savedState);
       return savedState; // This will already have a new sessionId from loadGameState
     } else {
-      console.log('[GameStateContext] No saved state found, creating new state with UUIDs');
+      Logger.info('[GameStateContext] No saved state found, creating new state with UUIDs');
       return {
         ...initialState,
         userId: uuidv4(),
@@ -90,7 +90,7 @@ const initializer = (): GameState => {
       };
     }
   } catch (error) {
-    console.error('Error during state initialization:', error);
+    Logger.error('Error during state initialization:', error);
     return {
       ...initialState,
       userId: uuidv4(),
@@ -106,15 +106,15 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       if (gameState !== initialState) {
-        console.log('[GameStateContext] Saving game state:', gameState);
+        Logger.info('[GameStateContext] Saving game state:', gameState);
         saveGameState(gameState);
       }
     } catch (error) {
-      console.error('Error saving game state:', error);
+      Logger.error('Error saving game state:', error);
     }
   }, [gameState]);
 
-  Logger.info('Current game state:', gameState);
+  Logger.debug('Current game state:', gameState);
 
   return (
     <GameStateContext.Provider value={{ gameState, dispatch }}>

@@ -2,11 +2,12 @@ import { saveGameState, clearGameState } from './localStorage';
 import { GameState } from '@/types/game';
 import { generateUUID, llmMetadataFromState } from './metadataUtils';
 import { BUSINESS_OVERVIEW } from '../constants/business';
+import { Logger } from '@/lib/utils/logger'; // Add this import
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 
 export async function startNewGame(currentState: GameState | null): Promise<GameState> {
-  console.log('[api] Starting new game');
+  Logger.info('[api] Starting new game');
   try {
     clearGameState();
 
@@ -54,11 +55,11 @@ export async function startNewGame(currentState: GameState | null): Promise<Game
       { role: 'system', name: 'CEO', content: adviceRequestContent, cycleNumber: 1 },
     ]
 
-    console.log('[api] New game state:', JSON.stringify(newGameState, null, 2));
+    Logger.debug('[api] New game state:', JSON.stringify(newGameState, null, 2));
     saveGameState(newGameState);
     return newGameState;
   } catch (error) {
-    console.error('[api] Error in startNewGame:', error);
+    Logger.error('[api] Error in startNewGame:', error);
     throw error;
   }
 }
@@ -66,11 +67,11 @@ export async function startNewGame(currentState: GameState | null): Promise<Game
 export const simulateBusinessCycle = async (userInput: string, gameState: GameState): Promise<{
   gameState: GameState;
 }> => {
-  console.log('[api] Simulating business cycle with user input:', userInput);
-  console.log('[api] Current game state:', gameState);
+  Logger.debug('[api] Simulating business cycle with user input:', userInput);
+  Logger.debug('[api] Current game state:', gameState);
   
   try {
-    console.log('[api] Sending simulation request to server');
+    Logger.info('[api] Sending simulation request to server');
     const response = await fetch(`${API_BASE_URL}/api/simulate`, {
       method: 'POST',
       headers: {
@@ -84,16 +85,16 @@ export const simulateBusinessCycle = async (userInput: string, gameState: GameSt
     }
 
     const { gameState: updatedGameState } = await response.json();
-    console.log('[api] Received updated game state from server:', updatedGameState);
+    Logger.debug('[api] Received updated game state from server:', updatedGameState);
     return { gameState: updatedGameState };
   } catch (error) {
-    console.error('[api] Error in simulateBusinessCycle:', error);
+    Logger.error('[api] Error in simulateBusinessCycle:', error);
     throw error;
   }
 };
 
 export async function saveGame(gameState: GameState) {
-  console.log('[api] Saving game state:', gameState);
+  Logger.debug('[api] Saving game state:', gameState);
   const response = await fetch('/api/saveGame', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

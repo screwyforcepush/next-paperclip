@@ -1,4 +1,5 @@
-import { KPI, Order } from '../../types/game'; // Assuming these types are defined in game.ts
+import { KPI, Order } from '@/types/game'; // Assuming these types are defined in game.ts
+import { Logger } from '@/lib/utils/logger';
 
 interface Change {
     revenue: number;
@@ -238,16 +239,16 @@ function calculateSharePrice(kpiArray: KPI[]): { orders: Order[], newSharePrice:
     const newSharePrice = Number((previousSharePrice * (1 + sharePriceChangePercentage)).toFixed(2));
 
 
-    console.log('[calculateSharePrice] Orders:', orders);
-    console.log('[calculateSharePrice] Buy orders:', buyOrders);
-    console.log('[calculateSharePrice] Sell orders:', sellOrders);
-    console.log('[calculateSharePrice] Current KPIs:', currentKPIs);
-    console.log('[calculateSharePrice] Previous share price:', previousSharePrice);
-    console.log('[calculateSharePrice] Net order effect:', netOrderEffect);
-    console.log('[calculateSharePrice] Market sentiment:', marketSentiment);
-    console.log('[calculateSharePrice] Sentiment factor:', sentimentFactor);
-    console.log('[calculateSharePrice] Share price change percentage:', sharePriceChangePercentage);
-    console.log('[calculateSharePrice] New share price:', newSharePrice);
+    Logger.debug('[calculateSharePrice] Orders:', orders);
+    Logger.debug('[calculateSharePrice] Buy orders:', buyOrders);
+    Logger.debug('[calculateSharePrice] Sell orders:', sellOrders);
+    Logger.debug('[calculateSharePrice] Current KPIs:', currentKPIs);
+    Logger.debug('[calculateSharePrice] Previous share price:', previousSharePrice);
+    Logger.debug('[calculateSharePrice] Net order effect:', netOrderEffect);
+    Logger.debug('[calculateSharePrice] Market sentiment:', marketSentiment);
+    Logger.debug('[calculateSharePrice] Sentiment factor:', sentimentFactor);
+    Logger.debug('[calculateSharePrice] Share price change percentage:', sharePriceChangePercentage);
+    Logger.debug('[calculateSharePrice] New share price:', newSharePrice);
     return { orders, newSharePrice };
 }
 

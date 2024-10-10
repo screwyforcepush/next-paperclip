@@ -9,6 +9,7 @@ import BusinessCycleHeader from './BusinessCycleHeader';
 import SimulationAccordion from './SimulationAccordion';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Message } from '@/types/game';
+import { Logger } from '@/lib/utils/logger';
 
 const ChatPanel: React.FC = () => {
   const { gameState } = useGameState();
@@ -34,12 +35,12 @@ const ChatPanel: React.FC = () => {
   }, [gameState.messages]);
 
   useLayoutEffect(() => {
-    console.log('[ChatPanel] Game state updated:', gameState);
+    Logger.debug('[ChatPanel] Game state updated:', gameState);
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [gameState.messages, isSimulating]);
 
-  console.log('[ChatPanel] Rendering. Current game state:', gameState);
-  console.log('[ChatPanel] isSimulating:', isSimulating, 'currentCycle:', gameState.currentCycle);
+  Logger.debug('[ChatPanel] Rendering. Current game state:', gameState);
+  Logger.debug('[ChatPanel] isSimulating:', isSimulating, 'currentCycle:', gameState.currentCycle);
 
   return (
     <div className="chat-panel flex flex-col h-full bg-gray-900 text-white">

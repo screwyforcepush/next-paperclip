@@ -7,6 +7,7 @@ import { generateSummary, updateOverview } from './summaryGenerator';
 import { calculateSharePrice } from './sharePriceCalculator';
 import { BUSINESS_OVERVIEW } from '@lib/constants/business'; // Add this import
 import { llmMetadataFromState } from '@/lib/utils/metadataUtils';
+import { Logger } from '@/lib/utils/logger'; // Add this import
 
 // Define a type for generator messages
 type GeneratorMessage =
@@ -36,16 +37,16 @@ export class BusinessEngine {
     };
     yield simulationGroupMessage;
 
-    console.log('[BusinessEngine] Running business cycle');
-    console.log('[BusinessEngine] Current game state:', JSON.stringify(gameState, null, 2));
-    console.log('[BusinessEngine] User input:', userInput);
+    Logger.debug('[BusinessEngine] Running business cycle');
+    Logger.debug('[BusinessEngine] Current game state:', JSON.stringify(gameState, null, 2));
+    Logger.debug('[BusinessEngine] User input:', userInput);
 
     // Find the most recent summary
     const lastSummary = [...gameState.messages]
       .reverse()
       .find(msg => msg.name === "Simulation Summary");
-    console.log('[BusinessEngine] Last summary:', lastSummary);
-    console.log('[BusinessEngine] Starting simulation');
+    Logger.debug('[BusinessEngine] Last summary:', lastSummary);
+    Logger.debug('[BusinessEngine] Starting simulation');
     const simulationGenerator = runSimulation(
       gameState.currentSituation, 
       userInput,
@@ -53,7 +54,7 @@ export class BusinessEngine {
       llmMetadata
     );
 
-    console.log('[BusinessEngine] Entering simulation loop');
+    Logger.debug('[BusinessEngine] Entering simulation loop');
     for await (const message of simulationGenerator) {
       const simulationMessage: Message = {
         ...message,
@@ -63,33 +64,33 @@ export class BusinessEngine {
       simulationMessages.push(simulationMessage);
       yield simulationMessage;
     }
-    console.log('[BusinessEngine] Simulation loop complete');
-    console.log('[BusinessEngine] Total simulation messages:', simulationMessages.length);
+    Logger.debug('[BusinessEngine] Simulation loop complete');
+    Logger.debug('[BusinessEngine] Total simulation messages:', simulationMessages.length);
 
     // Extract C-suite actions
     const cSuiteActions = simulationMessages
       .filter(msg => ['CTO', 'CFO', 'CMO', 'COO'].includes(msg.name || ''))
       .map(msg => msg.content);
 
-    console.log('[BusinessEngine] Analyzing impact');
+    Logger.debug('[BusinessEngine] Analyzing impact');
     const impactAnalysis = await analyzeImpact(
       gameState.currentSituation, 
       cSuiteActions, 
       llmMetadata,
       currentOverview // Add this line
     );
-    console.log('[BusinessEngine] Impact analysis:', impactAnalysis);
+    Logger.debug('[BusinessEngine] Impact analysis:', impactAnalysis);
     impactAnalysis.role = 'simulation';
     impactAnalysis.cycleNumber = currentCycle
     impactAnalysis.name = 'Outcome';
     yield impactAnalysis;
   
 
-    console.log('[BusinessEngine] Calculating new KPIs');
+    Logger.debug('[BusinessEngine] Calculating new KPIs');
     const newKPIs = await calculateNewKPIs(gameState, simulationMessages, impactAnalysis.content, llmMetadata);
 
     // Calculate share price
-    console.log('[BusinessEngine] Calculating share price');
+    Logger.debug('[BusinessEngine] Calculating share price');
     const updatedKPIHistory = [...gameState.kpiHistory, newKPIs];
     const { orders, newSharePrice } = calculateSharePrice(updatedKPIHistory);
 
@@ -102,21 +103,21 @@ export class BusinessEngine {
     // do this after new KPIs are calculated as we are passing in impactAnalysis separately
     simulationMessages.push(impactAnalysis);
 
-    console.log('[BusinessEngine] New KPIs:', JSON.stringify(newKPIsWithSharePrice, null, 2));
+    Logger.debug('[BusinessEngine] New KPIs:', JSON.stringify(newKPIsWithSharePrice, null, 2));
     yield { type: 'kpis', content: newKPIsWithSharePrice };
 
     llmMetadata.kpis = newKPIsWithSharePrice;
     // Update business overview
     const updatedOverview = await updateOverview(currentOverview, impactAnalysis.content, llmMetadata);
-    console.log('[BusinessEngine] Updated overview:', updatedOverview);
+    Logger.debug('[BusinessEngine] Updated overview:', updatedOverview);
     yield { type: 'business_overview', content: updatedOverview };
 
 
     // Generate summary of simulation
-    console.log('[BusinessEngine] Generating summary of simulation');
+    Logger.debug('[BusinessEngine] Generating summary of simulation');
     const simplifiedMessages = simulationMessages.map(msg => `${msg.name || msg.role}: ${msg.content}`);
     const summary = await generateSummary(gameState.currentSituation, userInput, simplifiedMessages, orders, llmMetadata);
-    console.log('[BusinessEngine] Simulation summary:', summary);
+    Logger.debug('[BusinessEngine] Simulation summary:', summary);
 
     // Add system message with summary
     const summaryMessage: Message = {
@@ -131,7 +132,7 @@ export class BusinessEngine {
     // Add business cycle message
 
     const newCycle = gameState.currentCycle + 1; // Calculate the new cycle number
-    console.log(`[BusinessEngine] New cycle: ${newCycle}`);
+    Logger.debug(`[BusinessEngine] New cycle: ${newCycle}`);
     const businessCycleMessage: Message = {
       role: 'business_cycle',
       content: newCycle.toString(),
@@ -141,17 +142,17 @@ export class BusinessEngine {
     yield businessCycleMessage;
 
     llmMetadata.cycle = newCycle;
-    console.log('[BusinessEngine] Generating new scenario and advice request');
+    Logger.debug('[BusinessEngine] Generating new scenario and advice request');
     let newScenario: string;
     let adviceRequest: string;
     try {
       const { scenario, advice_request } = await generateScenario(updatedOverview, llmMetadata, newCycle.toString(), gameState.currentSituation);
       newScenario = scenario;
       adviceRequest = advice_request;
-      console.log('[BusinessEngine] New scenario:', newScenario);
-      console.log('[BusinessEngine] Advice request:', adviceRequest);
+      Logger.debug('[BusinessEngine] New scenario:', newScenario);
+      Logger.debug('[BusinessEngine] Advice request:', adviceRequest);
     } catch (error) {
-      console.error('[BusinessEngine] Error generating scenario:', error);
+      Logger.error('[BusinessEngine] Error generating scenario:', error);
       newScenario = "An unexpected issue occurred. The CEO is working to resolve it.";
       adviceRequest = "No advice requested due to an error.";
     }

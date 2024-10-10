@@ -4,6 +4,7 @@ import { RunnableSequence } from "@langchain/core/runnables";
 import { BaseMessage } from "@langchain/core/messages";
 import { z } from "zod";
 import { getChatOpenAI } from '@/lib/utils/openaiConfig';
+import { Logger } from '@/lib/utils/logger';
 
 const ceoPrompt = PromptTemplate.fromTemplate(`
 You are Alex Turing, the CEO of Universal Paperclips. Your role is to make high-level decisions and delegate your expected outcomes to your C-suite team. 
@@ -63,7 +64,7 @@ export async function ceoAgent(state: {
     userAdvice: state.userAdvice,
     currentOverview: state.currentOverview, // Change this line
   });
-  console.log("[ceoAgent] Resolved prompt:", resolvedPrompt);
+  Logger.debug("[ceoAgent] Resolved prompt:", resolvedPrompt);
   
   // Initialize model with llmMetadata and inferenceObjective
   const model = getChatOpenAI({
@@ -79,7 +80,7 @@ export async function ceoAgent(state: {
     userAdvice: state.userAdvice,
     currentOverview: state.currentOverview, // Change this line
   });
-  console.log("[ceoAgent] User advice:", state.userAdvice);
+  Logger.debug("[ceoAgent] User advice:", state.userAdvice);
 
   return response;
 }
