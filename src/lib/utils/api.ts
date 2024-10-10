@@ -1,8 +1,7 @@
 import { saveGameState, clearGameState } from './localStorage';
 import { GameState } from '@/types/game';
-import { v4 as uuidv4 } from 'uuid';
+import { generateUUID, llmMetadataFromState } from './metadataUtils';
 import { BUSINESS_OVERVIEW } from '../constants/business';
-import { llmMetadataFromState } from './metadataUtils';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 
@@ -12,9 +11,9 @@ export async function startNewGame(currentState: GameState | null): Promise<Game
     clearGameState();
 
     const newGameState: GameState = {
-      userId: currentState?.userId || uuidv4(), // Keep existing userId or generate new
-      gameId: uuidv4(), // Always generate a new gameId for a new game
-      sessionId: currentState?.sessionId || uuidv4(), // Keep existing sessionId or generate new
+      userId: currentState?.userId || generateUUID(), // Use generateUUID instead of uuidv4
+      gameId: generateUUID(), // Use generateUUID instead of uuidv4
+      sessionId: currentState?.sessionId || generateUUID(), // Use generateUUID instead of uuidv4
       currentCycle: 1,
       businessOverview: BUSINESS_OVERVIEW,
       kpiHistory: [{

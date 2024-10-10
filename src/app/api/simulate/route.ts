@@ -1,6 +1,8 @@
 import { NextRequest } from 'next/server';
 import { BusinessEngine } from '@/lib/simulation/businessEngine';
 
+export const runtime = 'edge';
+
 export async function POST(req: NextRequest) {
   console.log("[simulate] Received simulation request");
 
