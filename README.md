@@ -47,6 +47,11 @@ A business simulation game where players act as consultants to a hypothetical pa
 
    - Create a `.env.local` file in the root directory.
    - Add your OpenAI API key and any other required environment variables as specified in `.env.example`.
+   - Ensure you have the following variables set:
+     ```
+     OPENAI_API_KEY=your_openai_api_key
+     NEXT_PUBLIC_API_BASE_URL=http://localhost:3000 // or your deployment URL
+     ```
 
 5. **Run the development server**:
 
@@ -100,7 +105,7 @@ project-root/
 │   │       ├── api.ts
 │   │       ├── localStorage.ts
 │   │       └── openaiConfig.ts
-│   ├��─ types/
+│   ├─ types/
 │   │   └── game.d.ts
 │   └── app/
 │       └── globals.css

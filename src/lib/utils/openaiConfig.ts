@@ -21,7 +21,7 @@ export const getChatOpenAI = (() => {
         modelName: "oaimini",
         temperature: 1.0,
         configuration: { 
-          basePath: env.LITELLM_BASE_PATH // Use basePath instead of baseURL
+          basePath: env.LLM_BASE_PATH // Use basePath instead of baseURL
         },
         modelKwargs: {
           metadata: {}
